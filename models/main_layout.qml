@@ -24,7 +24,7 @@ ApplicationWindow {
             id: side_panel
             spacing: 2
             Layout.columnSpan: 1
-            Layout.preferredWidth: 150
+            Layout.preferredWidth: 300
             Layout.topMargin: 10
             Layout.row: 0
             Layout.column: 0
@@ -36,9 +36,8 @@ ApplicationWindow {
                 model: columnOptionsModel
 
                 delegate: CheckBox {
-                    text: model.displayName
-                    checked: model.isChecked
-                    onCheckedChanged: columnOptionsModel.get(index).isChecked = checked
+                    text: model.display
+                    checked: model.checked
                 }
             }
         }

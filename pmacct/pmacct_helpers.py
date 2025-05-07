@@ -6,6 +6,7 @@ defaults = ['dst_ip', 'src_ip']
 friendlyColumnName = {'dst_ip': 'Destiination Address', 'src_ip': 'Source Address'}
 
 install_script = """echo 'testing'"""
+pmacct_install_check = """echo 'checking for pmacct install' """
 
 class ColOption:
     def __init__(self, name, friendlyName, isDefault):

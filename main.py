@@ -24,10 +24,15 @@ class ColumnOption(QAbstractListModel):
     def rowCount(self, parent=QModelIndex()):
         return len(self._data)
     
-    def data(self, index):
+    def data(self, index, role=Qt.DisplayRole):
+        print(f'role {role}')
         if not index.isValid() or index.row() >= len(self._data):
             return None
-        return self._data[index.row()]
+        elif role == Qt.DisplayRole:
+            return self._data[index.row()].displayName
+        # elif role == Qt.EditRole:
+        #     return self._data[index.row()].isChecked
+        return None
     
     def ToggleDisplayName(self, useFriendly):
         for col in self._data:
@@ -37,9 +42,9 @@ class ColumnOption(QAbstractListModel):
         return list(filter(lambda x: x.isChecked, self._data)) 
 
 class DataTableModel(QAbstractTableModel):
-    def __init__(self, data):
+    def __init__(self, data=None):
         super().__init__()
-        self._data = data
+        self._data = data or []
 
 @QmlElement
 class Bridge(QObject):
@@ -58,7 +63,6 @@ class Bridge(QObject):
 
     @Slot(bool)
     def toggleFriendlyNames(self, useFriendlyNames):
-        print(f'toggling names: {useFriendlyNames}')
         self.columnOptionsModel.ToggleDisplayName(useFriendlyNames)
 
     def GetTableHeaders(self):
