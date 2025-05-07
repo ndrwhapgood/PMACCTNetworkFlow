@@ -15,10 +15,6 @@ ApplicationWindow {
     Material.theme: Material.Dark
     Material.accent: Material.Red
 
-    Bridge {
-        id: bridge
-    }
-
     GridLayout{
         id: grid
         columns: 2
@@ -37,11 +33,11 @@ ApplicationWindow {
             ListView {
                 width: 100
                 height: 500
-                model: columnOptions
+                model: bridge.columnModel
 
                 delegate: CheckBox {
-                    text: modelData.name
-                    checked: modelData.isDefault
+                    text: 'testing'//modelData.displayName
+                    checked: true
                 }
             }
         }
@@ -62,22 +58,24 @@ ApplicationWindow {
                     DelayButton {
                         text: 'Install PMACCT'
                         delay: 500
-
                         onActivated: {
-                            console.log('installing PMACCT')
+                            bridge.InstallPMACCT()
                         }
                     }
 
                     Button {
                         text: 'Start Capture'
-
                         onClicked: {
-                            console.log('capturing network data')
+                            bridge.CaptureNetworkData()
                         }
                     }
+                    signal toggleFriendlyNames(bool checked)
 
                     CheckBox {
                         text: 'Use Friendly Names'
+                        onCheckedChanged: {
+                            bridge.toggleFriendlyNames(checked)
+                        }
                     }
                 }
             }

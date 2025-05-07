@@ -1,11 +1,15 @@
 import subprocess
+import os
 
 columns = ['dst_ip', 'src_ip', 'dst_port', 'src_port', 'proto']
 defaults = ['dst_ip', 'src_ip']
 friendlyColumnName = {'dst_ip': 'Destiination Address', 'src_ip': 'Source Address'}
 
+install_script = """echo 'testing'"""
+
 class ColOption:
     def __init__(self, name, friendlyName, isDefault):
+        self.displayName = name
         self.name = name
         self.friendlyName = friendlyName
         self.isDefault = isDefault
@@ -18,5 +22,5 @@ def GetColOptions():
     return options
 
 def InstallPMACCT():
-    out = subprocess.run('/install.sh')
+    os.system(install_script)
     return 0
