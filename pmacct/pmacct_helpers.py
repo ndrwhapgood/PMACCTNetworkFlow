@@ -1,4 +1,4 @@
-import subprocess
+import csv
 import os
 
 columns = ['dst_ip', 'src_ip', 'dst_port', 'src_port', 'proto']
@@ -13,6 +13,7 @@ class ColOption:
         self.name = name
         self.friendlyName = friendlyName
         self.isDefault = isDefault
+        self.isChecked = isDefault
 
 def GetColOptions():
     options = []
@@ -23,4 +24,7 @@ def GetColOptions():
 
 def InstallPMACCT():
     os.system(install_script)
+    return 0
+
+def ParseData():
     return 0

@@ -24,7 +24,7 @@ ApplicationWindow {
             id: side_panel
             spacing: 2
             Layout.columnSpan: 1
-            Layout.preferredWidth: 100
+            Layout.preferredWidth: 150
             Layout.topMargin: 10
             Layout.row: 0
             Layout.column: 0
@@ -33,11 +33,12 @@ ApplicationWindow {
             ListView {
                 width: 100
                 height: 500
-                model: bridge.columnModel
+                model: columnOptionsModel
 
                 delegate: CheckBox {
-                    text: 'testing'//modelData.displayName
-                    checked: true
+                    text: model.displayName
+                    checked: model.isChecked
+                    onCheckedChanged: columnOptionsModel.get(index).isChecked = checked
                 }
             }
         }
@@ -46,7 +47,7 @@ ApplicationWindow {
             id: user_controls
             spacing: 2
             Layout.columnSpan: 1
-            Layout.preferredWidth: 1520
+            Layout.preferredWidth: 1470
             Layout.topMargin: 10
             Layout.row: 0
             Layout.column: 1
