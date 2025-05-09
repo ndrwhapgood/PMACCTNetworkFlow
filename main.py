@@ -86,7 +86,6 @@ class Bridge(QObject):
         self.columnOptionsModel.ToggleDisplayName(useFriendlyNames)
 
     def getSelectedColumns(self):
-        a = list(filter(lambda x: x.isChecked, self.columnOptionsModel))
         print(f'{self.columnOptionsModel._data[0].name}')
 
 if __name__ == '__main__':

@@ -92,13 +92,22 @@ ApplicationWindow {
             Layout.column: 1
             Layout.alignment: Qt.AlignLeft | Qt.AlignVTop
 
-            TableView {
-                width: 1470
-                model: networkDataModel
+            HorizontalHeaderView {
+                syncView: networkData
+                model: ['src_ip', 'dst_ip', 'proto']
+                }
 
-                delegate: Item {
-                    width: data_view.width
-                    height: 20
+            TableView {
+                id: networkData
+                model: networkDataModel
+                height: 200
+                width: 1470
+                Layout.alignment: Qt.AlignHCenter
+
+                delegate: Rectangle {
+                    implicitWidth: 100
+                    implicitHeight: 50
+                    border.width: 1
 
                     Text {
                         text: display
