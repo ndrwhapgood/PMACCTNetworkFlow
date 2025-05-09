@@ -1,5 +1,4 @@
-#TODO: Rendering the table to the model is causing it to crash
-# Check boxes aren't binding correctly to the models isChecked property
+#TODO: Check boxes aren't binding correctly to the models isChecked property
 # Modify pmacct helpers to use script instead of hard coded commands
 # Write csv parser
 # Add rest of pmacct columns and friendly names.
@@ -32,7 +31,6 @@ class ColumnOption(QAbstractListModel):
         elif role == Qt.DisplayRole:
             return self._data[index.row()].displayName
         elif role == Qt.CheckStateRole:
-            print(f'checked state role: {role}')
             return self._data[index.row()].isChecked
         return True
     
@@ -40,24 +38,18 @@ class ColumnOption(QAbstractListModel):
         for col in self._data:
             col.displayName = col.friendlyName if useFriendly else col.name
 
-    def GetCheckedCols(self):
-        return list(filter(lambda x: x.isChecked, self._data)) 
-
 class DataTableModel(QAbstractTableModel):
     def __init__(self, data=None):
         super().__init__()
         self._data = data or []
-        print('table init')
     
-    def rowCount(self):
+    def rowCount(self, parent=QModelIndex()):
         return len(self._data)
     
-    def columnCount(self):
+    def columnCount(self, parent=QModelIndex()):
         return len(self._data[0]) if self._data else 0
     
     def data(self, index, role=Qt.DisplayRole):
-        print(f'table data {index} {role}')
-        print(f'data {index} {role}')
         if not index.isValid() or not (0 <= index.row() < self.rowCount() and 0 <= index.column() < self.columnCount()):
             return None
         if role == Qt.DisplayRole or role == Qt.UserRole:
@@ -65,12 +57,12 @@ class DataTableModel(QAbstractTableModel):
         return None
         
     def headerData(self, section, orientation, role=Qt.DisplayRole):
-        print(f'table header {section} {role}')
-        print(f'headerData {section} {orientation} {role}')
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             return ['src_ip', 'dst_ip', 'proto'][section]
         return super().headerData(section, orientation, role)
-
+    
+    def updateData(self, data):
+        self._data = data
 
 @QmlElement
 class Bridge(QObject):
@@ -85,20 +77,17 @@ class Bridge(QObject):
 
     @Slot()
     def CaptureNetworkData(self):
-        print('capturing data')
+        self.getSelectedColumns()
+        print(f'table data {self.dataModel._data}')
+        #self.dataModel.updateData(self.dataModel._data.append(['10.0.0.2', '192.0.0.1', 'tcp']))
 
     @Slot(bool)
     def toggleFriendlyNames(self, useFriendlyNames):
         self.columnOptionsModel.ToggleDisplayName(useFriendlyNames)
 
-    @Slot()
-    def getTableModel(self):
-        print('getting table model')
-        print(f'{self.dataModel._data}')
-        return self.dataModel
-
-    # def GetTableHeaders(self):
-    #     return self.columnOptionsModel.GetCheckedCols()
+    def getSelectedColumns(self):
+        a = list(filter(lambda x: x.isChecked, self.columnOptionsModel))
+        print(f'{self.columnOptionsModel._data[0].name}')
 
 if __name__ == '__main__':
     app = QGuiApplication(sys.argv)

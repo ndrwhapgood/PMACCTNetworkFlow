@@ -94,37 +94,16 @@ ApplicationWindow {
 
             TableView {
                 width: 1470
-                height: 1000
+                model: networkDataModel
 
-                model: bridge.getTableModel()
+                delegate: Item {
+                    width: data_view.width
+                    height: 20
 
-                delegate: Text {
-                    text: display
+                    Text {
+                        text: display
+                    }
                 }
-
-                // model: TableModel {
-                //     TableModelColumn { display: "name" }
-                //     TableModelColumn { display: "color" }
-
-                //     rows: [
-                //         {
-                //             "name": "cat",
-                //             "color": "black"
-                //         },
-                //         {
-                //             "name": "dog",
-                //             "color": "brown"
-                //         },
-                //         {
-                //             "name": "bird",
-                //             "color": "white"
-                //         }
-                //     ]
-                // }
-
-                // delegate: Text {
-                //     text: display
-                // }
             }
         }
     }
