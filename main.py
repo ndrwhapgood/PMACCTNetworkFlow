@@ -21,25 +21,33 @@ class ColumnOption(QAbstractListModel):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._data = pmacct.GetColOptions()
+        self._useFriendlyNames = False
 
     def rowCount(self, parent=QModelIndex()):
         return len(self._data)
     
     def data(self, index, role=Qt.DisplayRole):
+        print(f'index {index}')
+        #print(f'col data role {role}')
         if not index.isValid() or index.row() >= len(self._data):
             return None
         elif role == Qt.DisplayRole:
-            return self._data[index.row()].displayName
+            return self._data[index.row()].friendlyName if self._useFriendlyNames else self._data[index.row()].name
         elif role == Qt.CheckStateRole:
-            return self._data[index.row()].isChecked
+            return Qt.Checked if self._data[index.row()].isChecked else Qt.Unchecked
         return True
-    
-    def ToggleDisplayName(self, useFriendly):
-        for col in self._data:
-            col.displayName = col.friendlyName if useFriendly else col.name
+
+    def toggleFriendlyName(self):
+        self._useFriendlyNames = not self._useFriendlyNames
+        self.notifyChange()
+
+    def notifyChange(self):
+        for data in self._data:
+            i = self._data.index(data)
+            self.dataChanged.emit(self.index(i, 0), self.index(i, 0), Qt.DisplayRole)
 
 class DataTableModel(QAbstractTableModel):
-    def __init__(self, data=None):
+    def __init__(self, data):
         super().__init__()
         self._data = data or []
     
@@ -82,8 +90,9 @@ class Bridge(QObject):
         #self.dataModel.updateData(self.dataModel._data.append(['10.0.0.2', '192.0.0.1', 'tcp']))
 
     @Slot(bool)
-    def toggleFriendlyNames(self, useFriendlyNames):
-        self.columnOptionsModel.ToggleDisplayName(useFriendlyNames)
+    def toggleFriendlyNames(self, state):
+        self.columnOptionsModel.toggleFriendlyName()
+        return self.columnOptionsModel._useFriendlyNames
 
     def getSelectedColumns(self):
         print(f'{self.columnOptionsModel._data[0].name}')

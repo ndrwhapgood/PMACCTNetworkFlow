@@ -38,7 +38,7 @@ ApplicationWindow {
 
                 delegate: CheckBox {
                     text: model.display
-                    //checked: model.checked
+                    //checked: model.checkState
                 }
             }
         }
@@ -74,6 +74,7 @@ ApplicationWindow {
 
                     CheckBox {
                         text: 'Use Friendly Names'
+                        
                         onCheckedChanged: {
                             bridge.toggleFriendlyNames(checked)
                         }
@@ -110,7 +111,7 @@ ApplicationWindow {
                     border.width: 1
 
                     Text {
-                        text: display
+                        text: model.display
                     }
                 }
             }

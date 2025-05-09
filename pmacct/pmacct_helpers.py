@@ -10,10 +10,8 @@ pmacct_install_check = """echo 'checking for pmacct install' """
 
 class ColOption:
     def __init__(self, name, friendlyName, isDefault):
-        self.displayName = name
         self.name = name
         self.friendlyName = friendlyName
-        self.isDefault = isDefault
         self.isChecked = isDefault
 
 def GetColOptions():
