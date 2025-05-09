@@ -1,8 +1,9 @@
-import QtQuick 2.15
-import QtQuick.Layouts 1.11
-import QtQuick.Controls 6.9 // 6.9 for the delay button
-import QtQuick.Window 2.1
-import QtQuick.Controls.Material 2.1
+import QtQuick
+import Qt.labs.qmlmodels
+import QtQuick.Layouts 
+import QtQuick.Controls
+import QtQuick.Window
+import QtQuick.Controls.Material
 
 import io.qt.textproperties 1.0
 
@@ -18,7 +19,7 @@ ApplicationWindow {
     GridLayout{
         id: grid
         columns: 2
-        rows: 3
+        rows: 2
 
         ColumnLayout {
             id: side_panel
@@ -37,7 +38,7 @@ ApplicationWindow {
 
                 delegate: CheckBox {
                     text: model.display
-                    checked: model.checked
+                    //checked: model.checked
                 }
             }
         }
@@ -85,22 +86,45 @@ ApplicationWindow {
             id: data_view
             spacing: 2
             Layout.columnSpan: 1
-            Layout.preferredWidth: 1520
+            Layout.preferredWidth: 1470
             Layout.topMargin: 10
             Layout.row: 1
             Layout.column: 1
-            Layout.alignment: Qt.AlignTop
+            Layout.alignment: Qt.AlignLeft | Qt.AlignVTop
 
             TableView {
-                ScrollBar.horizontal: ScrollBar {}
-                ScrollBar.vertical: ScrollBar {}
-                model: ['a', 'b', 'c']
+                width: 1470
+                height: 1000
 
-                delegate: Rectangle {
-                    Text {
-                        text: modelData
-                    }
+                model: bridge.getTableModel()
+
+                delegate: Text {
+                    text: display
                 }
+
+                // model: TableModel {
+                //     TableModelColumn { display: "name" }
+                //     TableModelColumn { display: "color" }
+
+                //     rows: [
+                //         {
+                //             "name": "cat",
+                //             "color": "black"
+                //         },
+                //         {
+                //             "name": "dog",
+                //             "color": "brown"
+                //         },
+                //         {
+                //             "name": "bird",
+                //             "color": "white"
+                //         }
+                //     ]
+                // }
+
+                // delegate: Text {
+                //     text: display
+                // }
             }
         }
     }

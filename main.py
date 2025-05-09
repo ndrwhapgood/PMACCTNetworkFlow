@@ -1,6 +1,8 @@
-#TODO: QML - make list delegate show checkbox and correct text
-#            data table model and delegate
-#      Python - parse csv data
+#TODO: Rendering the table to the model is causing it to crash
+# Check boxes aren't binding correctly to the models isChecked property
+# Modify pmacct helpers to use script instead of hard coded commands
+# Write csv parser
+# Add rest of pmacct columns and friendly names.
 
 from __future__ import annotations
 
@@ -25,14 +27,14 @@ class ColumnOption(QAbstractListModel):
         return len(self._data)
     
     def data(self, index, role=Qt.DisplayRole):
-        print(f'role {role}')
         if not index.isValid() or index.row() >= len(self._data):
             return None
         elif role == Qt.DisplayRole:
             return self._data[index.row()].displayName
-        # elif role == Qt.EditRole:
-        #     return self._data[index.row()].isChecked
-        return None
+        elif role == Qt.CheckStateRole:
+            print(f'checked state role: {role}')
+            return self._data[index.row()].isChecked
+        return True
     
     def ToggleDisplayName(self, useFriendly):
         for col in self._data:
@@ -45,6 +47,30 @@ class DataTableModel(QAbstractTableModel):
     def __init__(self, data=None):
         super().__init__()
         self._data = data or []
+        print('table init')
+    
+    def rowCount(self):
+        return len(self._data)
+    
+    def columnCount(self):
+        return len(self._data[0]) if self._data else 0
+    
+    def data(self, index, role=Qt.DisplayRole):
+        print(f'table data {index} {role}')
+        print(f'data {index} {role}')
+        if not index.isValid() or not (0 <= index.row() < self.rowCount() and 0 <= index.column() < self.columnCount()):
+            return None
+        if role == Qt.DisplayRole or role == Qt.UserRole:
+            return str(self._data[index.row()][index.column()])
+        return None
+        
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
+        print(f'table header {section} {role}')
+        print(f'headerData {section} {orientation} {role}')
+        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+            return ['src_ip', 'dst_ip', 'proto'][section]
+        return super().headerData(section, orientation, role)
+
 
 @QmlElement
 class Bridge(QObject):
@@ -65,8 +91,14 @@ class Bridge(QObject):
     def toggleFriendlyNames(self, useFriendlyNames):
         self.columnOptionsModel.ToggleDisplayName(useFriendlyNames)
 
-    def GetTableHeaders(self):
-        headers = self.columnOptionsModel.GetCheckedCols()
+    @Slot()
+    def getTableModel(self):
+        print('getting table model')
+        print(f'{self.dataModel._data}')
+        return self.dataModel
+
+    # def GetTableHeaders(self):
+    #     return self.columnOptionsModel.GetCheckedCols()
 
 if __name__ == '__main__':
     app = QGuiApplication(sys.argv)
@@ -74,14 +106,20 @@ if __name__ == '__main__':
     QQuickStyle.setStyle("Material")
     engine = QQmlApplicationEngine()
 
-    columnOptionsModel = ColumnOption()
-    dataTableModel = DataTableModel()
+    test_data = [
+        ['10.0.0.1', '192.0.0.1', 'tcp'],
+        ['10.0.0.1', '192.0.0.2', 'tcp'],
+        ['10.0.0.1', '192.0.0.3', 'udp']
+    ]
 
-    bridge = Bridge(columnOptionsModel, dataTableModel)
+    columnOptionsModel = ColumnOption()
+    networkDataModel = DataTableModel(test_data)
+
+    bridge = Bridge(columnOptionsModel, networkDataModel)
 
     context = engine.rootContext()
     context.setContextProperty("columnOptionsModel", columnOptionsModel)
-    context.setContextProperty("dataTable", dataTableModel)
+    context.setContextProperty("networkDataModel", networkDataModel)
     context.setContextProperty("bridge", bridge)
     
     engine.addImportPath(sys.path[0])
