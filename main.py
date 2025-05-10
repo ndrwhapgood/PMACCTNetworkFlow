@@ -27,15 +27,24 @@ class ColumnOption(QAbstractListModel):
         return len(self._data)
     
     def data(self, index, role=Qt.DisplayRole):
-        print(f'index {index}')
-        #print(f'col data role {role}')
         if not index.isValid() or index.row() >= len(self._data):
             return None
         elif role == Qt.DisplayRole:
-            return self._data[index.row()].friendlyName if self._useFriendlyNames else self._data[index.row()].name
+            return self._data[index.row()]['friendlyName'] if self._useFriendlyNames else self._data[index.row()]['name']
         elif role == Qt.CheckStateRole:
-            return Qt.Checked if self._data[index.row()].isChecked else Qt.Unchecked
+            return Qt.Checked if self._data[index.row()]['isChecked'] else Qt.Unchecked
         return True
+    
+    def setData(self, index, value, role=Qt.EditRole):
+        print(f'setting data {role}')
+        if role == Qt.CheckStateRole:
+            self._data[index.row()]['isChecked'] = (value == Qt.CheckState)
+            self.dataChanged.emit(index, index, [Qt.CheckStateRole])
+            return True
+        return False
+    
+    def flags(self, index):
+        return Qt.ItemIsUserCheckable | Qt.ItemIsEnabled
 
     def toggleFriendlyName(self):
         self._useFriendlyNames = not self._useFriendlyNames
@@ -87,7 +96,6 @@ class Bridge(QObject):
     def CaptureNetworkData(self):
         self.getSelectedColumns()
         print(f'table data {self.dataModel._data}')
-        #self.dataModel.updateData(self.dataModel._data.append(['10.0.0.2', '192.0.0.1', 'tcp']))
 
     @Slot(bool)
     def toggleFriendlyNames(self, state):
@@ -95,7 +103,7 @@ class Bridge(QObject):
         return self.columnOptionsModel._useFriendlyNames
 
     def getSelectedColumns(self):
-        print(f'{self.columnOptionsModel._data[0].name}')
+        print(f'{self.columnOptionsModel._data[0]['name']}')
 
 if __name__ == '__main__':
     app = QGuiApplication(sys.argv)

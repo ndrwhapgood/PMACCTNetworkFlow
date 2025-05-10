@@ -38,7 +38,7 @@ ApplicationWindow {
 
                 delegate: CheckBox {
                     text: model.display
-                    //checked: model.checkState
+                    checked: model.checkState
                 }
             }
         }
