@@ -23,5 +23,26 @@ def InstallPMACCT():
     os.system(install_script)
     return 0
 
-def ParseData():
-    return 0
+def ParseData(cols):
+    total_data = []
+    with open('pmacct/sample.csv', newline='') as sampleData:
+        reader = csv.reader(sampleData, delimiter=' ')
+        for row in reader:
+            total_data.append(row)
+    
+    header = total_data[0][0].split(',')
+
+    #get indexes for cols in header
+    #TODO: put this in a try/catch block for if a column is not in the header.
+    indexs = list(map(lambda c: header.index(c), cols))
+    
+    filtered_data = []
+    for d in total_data:
+        d = d[0].split(',')
+        filtered_data.append([d[i] for i in indexs])
+
+    return filtered_data
+
+if __name__ == '__main__':
+    print('testing...')
+    print(ParseData(['dst_ip', 'src_ip', 'proto']))

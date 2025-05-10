@@ -1,6 +1,4 @@
-#TODO: Check boxes aren't binding correctly to the models isChecked property
-# Modify pmacct helpers to use script instead of hard coded commands
-# Write csv parser
+#TODO: Modify pmacct helpers to use script instead of hard coded commands
 # Add rest of pmacct columns and friendly names.
 
 from __future__ import annotations
@@ -63,7 +61,6 @@ class ColumnOption(QAbstractListModel):
                 i = self._data.index(data)
                 qml_index = self.index(i, 0)
                 self.setData(qml_index, checked, Qt.UserRole)
-        print(self._data)
 
 class DataTableModel(QAbstractTableModel):
     def __init__(self, data=[], headers=[]):
@@ -119,11 +116,6 @@ class Bridge(QObject):
         super().__init__()
         self.columnOptionsModel = columnModel
         self.dataModel = dataModel
-        self.test_data = [
-            ['10.0.0.1', '192.0.0.1', 'tcp'],
-            ['10.0.0.1', '192.0.0.2', 'tcp'],
-            ['10.0.0.1', '192.0.0.3', 'udp']
-        ]
 
     @Slot()
     def InstallPMACCT(self):
@@ -132,7 +124,8 @@ class Bridge(QObject):
     @Slot()
     def CaptureNetworkData(self):
         cols = self.getSelectedColumns()
-        self.dataModel.updateData(cols, self.test_data)
+        data = pmacct.ParseData(cols)
+        self.dataModel.updateData(cols, data)
 
     @Slot(bool)
     def toggleFriendlyNames(self, state):
