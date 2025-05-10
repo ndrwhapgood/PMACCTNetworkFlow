@@ -54,14 +54,16 @@ class ColumnOption(QAbstractListModel):
     def notifyChange(self):
         for data in self._data:
             i = self._data.index(data)
-            self.dataChanged.emit(self.index(i, 0), self.index(i, 0), Qt.DisplayRole)
+            self.dataChanged.emit(self.index(i, 0), self.index(i, 0), Qt.UserRole)
 
     @Slot(str, bool)
     def updateCheckedState(self, name, checked):
         for data in self._data:
             if data['name'] == name:
-                data['checked'] == checked
-                self.notifyChange()
+                i = self._data.index(data)
+                qml_index = self.index(i, 0)
+                self.setData(qml_index, checked, Qt.UserRole)
+        print(self._data)
 
 class DataTableModel(QAbstractTableModel):
     def __init__(self, data=[], headers=[]):
