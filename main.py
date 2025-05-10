@@ -32,15 +32,20 @@ class ColumnOption(QAbstractListModel):
         elif role == Qt.DisplayRole:
             return self._data[index.row()]['friendlyName'] if self._useFriendlyNames else self._data[index.row()]['name']
         elif role == Qt.CheckStateRole:
-            return Qt.Checked if self._data[index.row()]['isChecked'] else Qt.Unchecked
+            return Qt.Checked if self._data[index.row()]['checked'] else Qt.Unchecked
+        elif role == Qt.UserRole: # Define a custom role for 'checked'
+            return self._data[index.row()]['checked']
         return True
     
     def setData(self, index, value, role=Qt.EditRole):
-        if role == Qt.CheckStateRole:
-            self._data[index.row()]['isChecked'] = (value == Qt.CheckState)
-            self.dataChanged.emit(index, index, [Qt.CheckStateRole])
+        if role == Qt.UserRole:
+            self._data[index.row()]['checked'] = value
+            self.dataChanged.emit(index, index, [Qt.UserRole])
             return True
         return False
+    
+    def roleNames(self):
+        return {Qt.DisplayRole: b'name', Qt.UserRole: b'checked'}
 
     def toggleFriendlyName(self):
         self._useFriendlyNames = not self._useFriendlyNames
@@ -50,6 +55,13 @@ class ColumnOption(QAbstractListModel):
         for data in self._data:
             i = self._data.index(data)
             self.dataChanged.emit(self.index(i, 0), self.index(i, 0), Qt.DisplayRole)
+
+    @Slot(str, bool)
+    def updateCheckedState(self, name, checked):
+        for data in self._data:
+            if data['name'] == name:
+                data['checked'] == checked
+                self.notifyChange()
 
 class DataTableModel(QAbstractTableModel):
     def __init__(self, data=[], headers=[]):
@@ -94,7 +106,6 @@ class DataTableModel(QAbstractTableModel):
         return True
     
     def notifyChange(self):
-        print(f'notifying change: {self._data}')
         for data in self._data:
             i = self._data.index(data)
             self.dataChanged.emit(self.index(i, 0), self.index(i, 0), Qt.DisplayRole)
@@ -130,8 +141,8 @@ class Bridge(QObject):
         selectedCols = []
         #not a good way to do this, improve later.
         for co in self.columnOptionsModel._data:
-            if co['isChecked']:
-                print(f'{co['name']} {co['isChecked']}')
+            if co['checked']:
+                print(f'{co['name']} {co['checked']}')
                 selectedCols.append(co['name'])
         return selectedCols
 

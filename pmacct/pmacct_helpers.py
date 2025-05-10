@@ -2,7 +2,7 @@ import csv
 import os
 
 columns = ['dst_ip', 'src_ip', 'dst_port', 'src_port', 'proto']
-defaults = ['dst_ip', 'src_ip']
+defaults = ['dst_ip', 'src_ip', 'proto']
 friendlyColumnName = {'dst_ip': 'Destiination Address', 'src_ip': 'Source Address'}
 
 install_script = """echo 'testing'"""
@@ -14,7 +14,7 @@ def GetColOptions():
         options.append(
             {'name': col, 
              'friendlyName': friendlyColumnName.get(col) or col, 
-             'isChecked': col in defaults
+             'checked': col in defaults
             })
 
     return options

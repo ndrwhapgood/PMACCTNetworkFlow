@@ -37,8 +37,13 @@ ApplicationWindow {
                 model: columnOptionsModel
 
                 delegate: CheckBox {
-                    text: model.display
-                    //checked: model.checkState
+                    text: model.name
+                    property bool isChecked: model.checked
+                    checked: isChecked
+                    onClicked: {
+                        isChecked = !isChecked
+                        columnOptionsModel.updateCheckedState(model.name, isChecked)
+                    }
                 }
             }
         }
