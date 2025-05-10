@@ -36,15 +36,11 @@ class ColumnOption(QAbstractListModel):
         return True
     
     def setData(self, index, value, role=Qt.EditRole):
-        print(f'setting data {role}')
         if role == Qt.CheckStateRole:
             self._data[index.row()]['isChecked'] = (value == Qt.CheckState)
             self.dataChanged.emit(index, index, [Qt.CheckStateRole])
             return True
         return False
-    
-    def flags(self, index):
-        return Qt.ItemIsUserCheckable | Qt.ItemIsEnabled
 
     def toggleFriendlyName(self):
         self._useFriendlyNames = not self._useFriendlyNames
@@ -56,9 +52,10 @@ class ColumnOption(QAbstractListModel):
             self.dataChanged.emit(self.index(i, 0), self.index(i, 0), Qt.DisplayRole)
 
 class DataTableModel(QAbstractTableModel):
-    def __init__(self, data):
+    def __init__(self, data=[], headers=[]):
         super().__init__()
-        self._data = data or []
+        self._data = data
+        self._headers = headers
     
     def rowCount(self, parent=QModelIndex()):
         return len(self._data)
@@ -75,11 +72,33 @@ class DataTableModel(QAbstractTableModel):
         
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-            return ['src_ip', 'dst_ip', 'proto'][section]
-        return super().headerData(section, orientation, role)
+            return self._headers[section]
+        return None
     
-    def updateData(self, data):
+    def setData(self, index, value, role=Qt.EditRole):
+        if role==Qt.EditRole:
+            self._data[index.row()][index.column()] = value
+            self.dataChanged.emit(index, index, {Qt.DisplayRole, Qt.EditRole})
+            return True
+        return False
+    
+    def updateData(self, headers, data):
         self._data = data
+        self.updateHeaders(headers)
+        self.notifyChange()
+
+    def updateHeaders(self, headers):
+        self.beginResetModel()
+        self._headers = headers
+        self.endResetModel()
+        return True
+    
+    def notifyChange(self):
+        print(f'notifying change: {self._data}')
+        for data in self._data:
+            i = self._data.index(data)
+            self.dataChanged.emit(self.index(i, 0), self.index(i, 0), Qt.DisplayRole)
+
 
 @QmlElement
 class Bridge(QObject):
@@ -87,6 +106,11 @@ class Bridge(QObject):
         super().__init__()
         self.columnOptionsModel = columnModel
         self.dataModel = dataModel
+        self.test_data = [
+            ['10.0.0.1', '192.0.0.1', 'tcp'],
+            ['10.0.0.1', '192.0.0.2', 'tcp'],
+            ['10.0.0.1', '192.0.0.3', 'udp']
+        ]
 
     @Slot()
     def InstallPMACCT(self):
@@ -94,8 +118,8 @@ class Bridge(QObject):
 
     @Slot()
     def CaptureNetworkData(self):
-        self.getSelectedColumns()
-        print(f'table data {self.dataModel._data}')
+        cols = self.getSelectedColumns()
+        self.dataModel.updateData(cols, self.test_data)
 
     @Slot(bool)
     def toggleFriendlyNames(self, state):
@@ -103,7 +127,13 @@ class Bridge(QObject):
         return self.columnOptionsModel._useFriendlyNames
 
     def getSelectedColumns(self):
-        print(f'{self.columnOptionsModel._data[0]['name']}')
+        selectedCols = []
+        #not a good way to do this, improve later.
+        for co in self.columnOptionsModel._data:
+            if co['isChecked']:
+                print(f'{co['name']} {co['isChecked']}')
+                selectedCols.append(co['name'])
+        return selectedCols
 
 if __name__ == '__main__':
     app = QGuiApplication(sys.argv)
@@ -111,14 +141,8 @@ if __name__ == '__main__':
     QQuickStyle.setStyle("Material")
     engine = QQmlApplicationEngine()
 
-    test_data = [
-        ['10.0.0.1', '192.0.0.1', 'tcp'],
-        ['10.0.0.1', '192.0.0.2', 'tcp'],
-        ['10.0.0.1', '192.0.0.3', 'udp']
-    ]
-
     columnOptionsModel = ColumnOption()
-    networkDataModel = DataTableModel(test_data)
+    networkDataModel = DataTableModel()
 
     bridge = Bridge(columnOptionsModel, networkDataModel)
 

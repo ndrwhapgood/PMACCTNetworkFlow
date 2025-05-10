@@ -38,7 +38,7 @@ ApplicationWindow {
 
                 delegate: CheckBox {
                     text: model.display
-                    checked: model.checkState
+                    //checked: model.checkState
                 }
             }
         }
@@ -91,21 +91,16 @@ ApplicationWindow {
             Layout.topMargin: 10
             Layout.row: 1
             Layout.column: 1
-            Layout.alignment: Qt.AlignLeft | Qt.AlignVTop
-
-            HorizontalHeaderView {
-                syncView: networkData
-                model: ['src_ip', 'dst_ip', 'proto']
-                }
+            Layout.alignment: Qt.AlignTop
 
             TableView {
                 id: networkData
                 model: networkDataModel
                 height: 200
                 width: 1470
-                Layout.alignment: Qt.AlignHCenter
 
                 delegate: Rectangle {
+                    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                     implicitWidth: 100
                     implicitHeight: 50
                     border.width: 1
