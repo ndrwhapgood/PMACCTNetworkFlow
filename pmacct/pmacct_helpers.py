@@ -1,12 +1,10 @@
 import csv
 import os
+import subprocess
 
 columns = ['dst_ip', 'src_ip', 'dst_port', 'src_port', 'proto']
 defaults = ['dst_ip', 'src_ip', 'proto']
 friendlyColumnName = {'dst_ip': 'Destiination Address', 'src_ip': 'Source Address'}
-
-install_script = """echo 'testing'"""
-pmacct_install_check = """echo 'checking for pmacct install' """
 
 def GetColOptions():
     options = []
@@ -20,8 +18,10 @@ def GetColOptions():
     return options
 
 def InstallPMACCT():
-    os.system(install_script)
-    return 0
+    return subprocess.run(['bash', 'pmacct/install.sh'], capture_output=True, text=True)
+
+def RunTestScript():
+    return subprocess.run(['bash', 'pmacct/test.sh'], capture_output=True, text=True)
 
 def ParseData(cols):
     total_data = []
@@ -35,7 +35,7 @@ def ParseData(cols):
     #get indexes for cols in header
     #TODO: put this in a try/catch block for if a column is not in the header.
     indexs = list(map(lambda c: header.index(c), cols))
-    
+
     filtered_data = []
     for d in total_data:
         d = d[0].split(',')
@@ -45,4 +45,5 @@ def ParseData(cols):
 
 if __name__ == '__main__':
     print('testing...')
-    print(ParseData(['dst_ip', 'src_ip', 'proto']))
+    #print(ParseData(['dst_ip', 'src_ip', 'proto']))
+    print(RunTestScript())

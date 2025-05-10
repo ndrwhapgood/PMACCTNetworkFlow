@@ -119,7 +119,8 @@ class Bridge(QObject):
 
     @Slot()
     def InstallPMACCT(self):
-        pmacct.InstallPMACCT()
+        result = pmacct.InstallPMACCT()
+        print(result.stdout) # result.stderr expected to be ''
 
     @Slot()
     def CaptureNetworkData(self):
