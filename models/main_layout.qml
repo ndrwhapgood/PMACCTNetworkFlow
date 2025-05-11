@@ -32,7 +32,6 @@ ApplicationWindow {
             Layout.preferredWidth: 200
 
             Material.elevation: 6
-            Material.background: Material.Shade300
 
             ListView {
                 width: 100
@@ -62,20 +61,10 @@ ApplicationWindow {
             Layout.alignment: Qt.AlignTop
 
             Material.elevation: 6
-            Material.background: Material.Shade400
 
             Row {
-                spacing: 50
-
-                DelayButton {
-                    text: 'Install PMACCT'
-                    delay: 500
-                    onActivated: {
-                        bridge.InstallPMACCT()
-                    }
-                }
-
                 Button {
+                    Layout.topMargin: 10
                     text: 'Start Capture'
                     onClicked: {
                         bridge.CaptureNetworkData()
@@ -84,10 +73,21 @@ ApplicationWindow {
                 signal toggleFriendlyNames(bool checked)
 
                 CheckBox {
+                    Layout.topMargin: 10
                     text: 'Use Friendly Names'
                     onCheckedChanged: {
                         bridge.toggleFriendlyNames(checked)
                     }
+                }
+            }
+
+            DelayButton {
+                Layout.topMargin: 10
+                anchors.right: parent.right
+                text: 'Install PMACCT'
+                delay: 500
+                onActivated: {
+                    bridge.InstallPMACCT()
                 }
             }
         }
@@ -103,18 +103,24 @@ ApplicationWindow {
             Layout.alignment: Qt.AlignTop
 
             Material.elevation: 6
-            Material.background: Material.Brown
 
             TableView {
                 model: networkDataModel
                 anchors.fill: parent
-                delegate: Rectangle {
-                    implicitHeight: 50
-                    implicitWidth: 100
-                    border.width: 1
 
-                    Text {
-                        text: model.display
+                delegate: Item {
+                    implicitHeight: 30
+                    implicitWidth: 150
+
+                    Item {
+                        anchors.centerIn: parent
+
+                        Text {
+                            anchors.centerIn: parent
+                            verticalAlignment: Text.AlignVCenter
+                            text: model.display
+                            color: 'white'
+                        }
                     }
                 }
             }

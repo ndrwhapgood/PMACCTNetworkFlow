@@ -3,7 +3,7 @@ import os
 import subprocess
 
 columns = ['dst_ip', 'src_ip', 'dst_port', 'src_port', 'proto']
-defaults = ['dst_ip', 'src_ip', 'proto']
+defaults = ['dst_ip', 'src_ip', 'dst_port', 'src_port', 'proto']
 friendlyColumnName = {'dst_ip': 'Destiination Address', 'src_ip': 'Source Address'}
 
 def GetColOptions():

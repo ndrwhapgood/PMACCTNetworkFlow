@@ -1,5 +1,6 @@
 #TODO: Modify pmacct helpers to use script instead of hard coded commands
 # Add rest of pmacct columns and friendly names.
+# Have table user friendly names as well (big job)
 # Fix a bug where when the Friendy Name is selected, the selected column doesn't filter properly
 #   To reproduct: select a column with a friendly name and friendly names enabled
 #   Request data,
