@@ -16,20 +16,23 @@ ApplicationWindow {
     Material.theme: Material.Dark
     Material.accent: Material.Red
 
-    GridLayout{
+    GridLayout {
         id: grid
         columns: 2
         rows: 2
+        anchors.fill: parent
 
-        ColumnLayout {
+        Pane {
             id: side_panel
-            spacing: 2
-            Layout.columnSpan: 1
-            Layout.preferredWidth: 300
-            Layout.topMargin: 10
             Layout.row: 0
             Layout.column: 0
-            Layout.alignment: Qt.AlignLeft | Qt.AlignVTop
+            Layout.rowSpan: 2
+            Layout.columnSpan: 1
+            Layout.fillHeight: true
+            Layout.preferredWidth: 200
+
+            Material.elevation: 6
+            Material.background: Material.Shade300
 
             ListView {
                 width: 100
@@ -48,66 +51,66 @@ ApplicationWindow {
             }
         }
 
-        ColumnLayout {
-            id: user_controls
-            spacing: 2
-            Layout.columnSpan: 1
-            Layout.preferredWidth: 1470
-            Layout.topMargin: 10
+        Pane {
+            id: control_panel
             Layout.row: 0
             Layout.column: 1
+            Layout.rowSpan: 1
+            Layout.columnSpan: 1
+            Layout.fillWidth: true
+            Layout.preferredHeight: 150
             Layout.alignment: Qt.AlignTop
 
-            Rectangle {
-                RowLayout {
-                    spacing: 50
-                    DelayButton {
-                        text: 'Install PMACCT'
-                        delay: 500
-                        onActivated: {
-                            bridge.InstallPMACCT()
-                        }
-                    }
+            Material.elevation: 6
+            Material.background: Material.Shade400
 
-                    Button {
-                        text: 'Start Capture'
-                        onClicked: {
-                            bridge.CaptureNetworkData()
-                        }
-                    }
-                    signal toggleFriendlyNames(bool checked)
+            Row {
+                spacing: 50
 
-                    CheckBox {
-                        text: 'Use Friendly Names'
-                        
-                        onCheckedChanged: {
-                            bridge.toggleFriendlyNames(checked)
-                        }
+                DelayButton {
+                    text: 'Install PMACCT'
+                    delay: 500
+                    onActivated: {
+                        bridge.InstallPMACCT()
+                    }
+                }
+
+                Button {
+                    text: 'Start Capture'
+                    onClicked: {
+                        bridge.CaptureNetworkData()
+                    }
+                }
+                signal toggleFriendlyNames(bool checked)
+
+                CheckBox {
+                    text: 'Use Friendly Names'
+                    onCheckedChanged: {
+                        bridge.toggleFriendlyNames(checked)
                     }
                 }
             }
         }
 
-        ColumnLayout {
-            id: data_view
-            spacing: 2
-            Layout.columnSpan: 1
-            Layout.preferredWidth: 1470
-            Layout.topMargin: 10
+        Pane {
+            id: data_panel
             Layout.row: 1
             Layout.column: 1
+            Layout.rowSpan: 1
+            Layout.columnSpan: 1
+            Layout.fillHeight: true
+            Layout.fillWidth: true
             Layout.alignment: Qt.AlignTop
 
-            TableView {
-                id: networkData
-                model: networkDataModel
-                height: 200
-                width: 1470
+            Material.elevation: 6
+            Material.background: Material.Brown
 
+            TableView {
+                model: networkDataModel
+                anchors.fill: parent
                 delegate: Rectangle {
-                    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-                    implicitWidth: 100
                     implicitHeight: 50
+                    implicitWidth: 100
                     border.width: 1
 
                     Text {
