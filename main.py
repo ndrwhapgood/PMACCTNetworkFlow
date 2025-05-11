@@ -1,6 +1,5 @@
 #TODO: Modify pmacct helpers to use script instead of hard coded commands
 # Add rest of pmacct columns and friendly names.
-# Have table user friendly names as well (big job)
 # Fix a bug where when the Friendy Name is selected, the selected column doesn't filter properly
 #   To reproduct: select a column with a friendly name and friendly names enabled
 #   Request data,
@@ -67,6 +66,9 @@ class ColumnOption(QAbstractListModel):
                 qml_index = self.index(i, 0)
                 self.setData(qml_index, checked, Qt.UserRole)
 
+    def getSelectedColsDisplayName(self):
+        return list(map(lambda c: c['friendlyName'] if c['checked'] and self._useFriendlyNames else c['name'], self._data))
+
 class DataTableModel(QAbstractTableModel):
     def __init__(self, data=[], headers=[]):
         super().__init__()
@@ -114,6 +116,14 @@ class DataTableModel(QAbstractTableModel):
             i = self._data.index(data)
             self.dataChanged.emit(self.index(i, 0), self.index(i, 0), Qt.DisplayRole)
 
+    def swapHeaderColumn(self, cols=[]):
+        # if len(self._data) > 0 and len(self._data[0]) == len(cols):
+        #TODO: clean up and test more
+        self.beginResetModel()
+        self._headers = cols
+        self.endResetModel()
+        self._data[0] = cols
+        self.notifyChange()
 
 @QmlElement
 class Bridge(QObject):
@@ -136,6 +146,8 @@ class Bridge(QObject):
     @Slot(bool)
     def toggleFriendlyNames(self, state):
         self.columnOptionsModel.toggleFriendlyName()
+        new_headers = self.columnOptionsModel.getSelectedColsDisplayName()
+        self.dataModel.swapHeaderColumn(new_headers)
         return self.columnOptionsModel._useFriendlyNames
 
     def getSelectedColumns(self):
@@ -145,7 +157,7 @@ class Bridge(QObject):
             if co['checked']:
                 selectedCols.append(co['name'])
         return selectedCols
-
+    
 if __name__ == '__main__':
     app = QGuiApplication(sys.argv)
 
