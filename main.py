@@ -1,9 +1,12 @@
 #TODO: Modify pmacct helpers to use script instead of hard coded commands
 # Add rest of pmacct columns and friendly names.
+# Do a global check if pmacct is install, disable Start button if not.
+# More bug fixes when I just start clicking things too much.
 # Fix a bug where when the Friendy Name is selected, the selected column doesn't filter properly
 #   To reproduct: select a column with a friendly name and friendly names enabled
 #   Request data,
 #   Deselect with the friendly name and request data again
+# Get pmacct data in a sql database.
 
 from __future__ import annotations
 
@@ -66,8 +69,12 @@ class ColumnOption(QAbstractListModel):
                 qml_index = self.index(i, 0)
                 self.setData(qml_index, checked, Qt.UserRole)
 
+    def isChecked(self, c):
+        return c['checked']
+
     def getSelectedColsDisplayName(self):
-        return list(map(lambda c: c['friendlyName'] if c['checked'] and self._useFriendlyNames else c['name'], self._data))
+        checked_cols = filter(self.isChecked, self._data)
+        return list(map(lambda c: c['friendlyName'] if self._useFriendlyNames else c['name'], checked_cols))
 
 class DataTableModel(QAbstractTableModel):
     def __init__(self, data=[], headers=[]):
@@ -131,11 +138,13 @@ class Bridge(QObject):
         super().__init__()
         self.columnOptionsModel = columnModel
         self.dataModel = dataModel
+        self.isInstalled = pmacct.IsPMACCTInstalled()
 
     @Slot()
     def InstallPMACCT(self):
         result = pmacct.InstallPMACCT()
-        print(result.stdout) # result.stderr expected to be ''
+        if result.stdout == '':
+            self.isInstalled = True
 
     @Slot()
     def CaptureNetworkData(self):

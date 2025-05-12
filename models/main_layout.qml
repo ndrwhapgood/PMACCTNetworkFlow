@@ -14,7 +14,7 @@ ApplicationWindow {
     height: 1080
     visible: true
     Material.theme: Material.Dark
-    Material.accent: Material.Red
+    Material.accent: Material.Purple
 
     GridLayout {
         id: grid
@@ -63,9 +63,13 @@ ApplicationWindow {
             Material.elevation: 6
 
             Row {
+                spacing: 50
                 Button {
+                    id: captureButton
                     Layout.topMargin: 10
                     text: 'Start Capture'
+                    enabled: bridge.isInstalled
+
                     onClicked: {
                         bridge.CaptureNetworkData()
                     }
