@@ -1,6 +1,7 @@
 import csv
 import os
 import subprocess
+import netifaces
 
 primitives = [ 'src_mac', 'dst_mac', 'vlan', 'in_vlan', 'out_vlan', 'in_cvlan', 'out_cvlan', 'cos', 'etype',
             'src_host', 'dst_host', 'src_net', 'dst_net', 'src_mask', 'dst_mask', 'src_as', 'dst_as',
@@ -32,6 +33,9 @@ def GetColOptions():
             })
 
     return options
+
+def GetNetworkInterfaces():
+    return netifaces.interfaces()
 
 def IsPMACCTInstalled():
     # probably doens't need a script, clean up la
@@ -68,3 +72,4 @@ if __name__ == '__main__':
     #print(ParseData(['dst_ip', 'src_ip', 'proto']))
     #print(RunTestScript())
     #print(IsPMACCTInstalled())
+    print(GetNetworkInterfaces())

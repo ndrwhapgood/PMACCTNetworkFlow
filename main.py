@@ -7,6 +7,7 @@
 #   Request data,
 #   Deselect with the friendly name and request data again
 # Get pmacct data in a sql database.
+# Put network interface model in it's own row so the other stuff doesn't show up behind it.
 
 from __future__ import annotations
 
@@ -21,6 +22,29 @@ import pmacct.pmacct_helpers as pmacct
 
 QML_IMPORT_NAME = "io.qt.textproperties"
 QML_IMPORT_MAJOR_VERSION = 1
+
+
+class NetworkInterfaceModel(QAbstractListModel):
+    def __init__(self, data=None):
+        super().__init__()
+        self._data = pmacct.GetNetworkInterfaces()
+
+    def rowCount(self, parent=None):
+        return len(self._data)
+    
+    def data(self, index, role=Qt.DisplayRole):
+        if not index.isValid() or index.row() >= len(self._data):
+            return None
+        if role == Qt.DisplayRole:
+            return self._data[index.row()]
+        return True
+    
+    def setData(self, index, value, role=Qt.DisplayRole):
+        if role == Qt.DisplayRole:
+            self._data[index.row()] = value
+            self.dataChanged.emit(index, index, [Qt.EditRole | Qt.DisplayRole])
+            return True
+        return False
 
 class ColumnOption(QAbstractListModel):
     def __init__(self, parent=None):
@@ -80,7 +104,7 @@ class DataTableModel(QAbstractTableModel):
     def __init__(self, data=[], headers=[]):
         super().__init__()
         self._data = data
-        self._headers = headers
+        self._headers = headers 
     
     def rowCount(self, parent=QModelIndex()):
         return len(self._data)
@@ -139,6 +163,7 @@ class Bridge(QObject):
         self.columnOptionsModel = columnModel
         self.dataModel = dataModel
         self.isInstalled = pmacct.IsPMACCTInstalled()
+        self.selectedInterface = pmacct.GetNetworkInterfaces()[0] #hopefully this is never empty
 
     @Slot()
     def InstallPMACCT(self):
@@ -158,6 +183,10 @@ class Bridge(QObject):
         new_headers = self.columnOptionsModel.getSelectedColsDisplayName()
         self.dataModel.swapHeaderColumn(new_headers)
         return self.columnOptionsModel._useFriendlyNames
+    
+    @Slot(str)
+    def setNetworkInterface(self, interface):
+        print(f'selected interface {interface}')
 
     def getSelectedColumns(self):
         selectedCols = []
@@ -173,12 +202,14 @@ if __name__ == '__main__':
     QQuickStyle.setStyle("Material")
     engine = QQmlApplicationEngine()
 
+    networkInterfaceModel = NetworkInterfaceModel()
     columnOptionsModel = ColumnOption()
     networkDataModel = DataTableModel()
 
     bridge = Bridge(columnOptionsModel, networkDataModel)
 
     context = engine.rootContext()
+    context.setContextProperty("networkInterfaceModel",networkInterfaceModel)
     context.setContextProperty("columnOptionsModel", columnOptionsModel)
     context.setContextProperty("networkDataModel", networkDataModel)
     context.setContextProperty("bridge", bridge)

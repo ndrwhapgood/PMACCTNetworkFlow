@@ -33,9 +33,21 @@ ApplicationWindow {
 
             Material.elevation: 6
 
+            ComboBox {
+                id: network_interfaces
+                model: networkInterfaceModel
+                anchors.top: parent.top
+                textRole: 'display'
+
+                onActivated: {
+                    bridge.setNetworkInterface(network_interfaces.currentText)
+                }
+            }
+
             ListView {
                 width: 100
-                height: 500
+                anchors.topMargin: network_interfaces.height
+                anchors.fill: parent
                 model: columnOptionsModel
 
                 delegate: CheckBox {
