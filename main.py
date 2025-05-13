@@ -1,12 +1,6 @@
-#TODO: Modify pmacct helpers to use script instead of hard coded commands
-# Add rest of pmacct columns and friendly names.
+#TODO: 
 # Do a global check if pmacct is install, disable Start button if not.
 # More bug fixes when I just start clicking things too much.
-# Fix a bug where when the Friendy Name is selected, the selected column doesn't filter properly
-#   To reproduct: select a column with a friendly name and friendly names enabled
-#   Request data,
-#   Deselect with the friendly name and request data again
-# Get pmacct data in a sql database.
 # Put network interface model in it's own row so the other stuff doesn't show up behind it.
 
 from __future__ import annotations
@@ -142,6 +136,7 @@ class DataTableModel(QAbstractTableModel):
         headers = [headers[i] for i in indexes]
         data = []
         for row in table:
+            # data needs to be appened like this to save the data and not the object.
             d = [row[i] for i in indexes]
             data.append(d)
         self._data = data
@@ -210,8 +205,9 @@ class Bridge(QObject):
                 selectedCols.append(co['name'])
         return selectedCols
     
-    async def refreshData():
-        print('refreshing data')
+    def saveData(self):
+        pmacct.SaveData(self.columnOptionsModel.getSelectedColIndexes())
+    
     
 if __name__ == '__main__':
     print('initizlation data')
