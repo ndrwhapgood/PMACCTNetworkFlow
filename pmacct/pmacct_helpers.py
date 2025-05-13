@@ -2,6 +2,7 @@ import csv
 import os
 import subprocess
 import netifaces
+import time
 
 primitives = [ 'src_mac', 'dst_mac', 'vlan', 'in_vlan', 'out_vlan', 'in_cvlan', 'out_cvlan', 'cos', 'etype',
             'src_host', 'dst_host', 'src_net', 'dst_net', 'src_mask', 'dst_mask', 'src_as', 'dst_as',
@@ -47,6 +48,17 @@ def InstallPMACCT():
 def RunTestScript():
     return subprocess.run(['bash', 'pmacct/test.sh'], capture_output=True, text=True)
 
+def BuildConfFile(iface, primitives, filename):
+    conf = f"""plugins: print[csv]
+    print_refresh_time: 10
+    aggregate[csv]: {", ".join(primitives)}
+    pcap_interface: {iface}
+    print_output[data]: csv
+    print_output_file[csv]: {filename}
+    """
+    with open("pmacct/pmacct.conf", "w") as new_conf:
+        new_conf.write(conf)
+
 def ParseData(cols):
     total_data = []
     with open('pmacct/sample.csv', newline='') as sampleData:
@@ -67,9 +79,13 @@ def ParseData(cols):
 
     return filtered_data
 
+def CaptureData():
+    return []
+
 if __name__ == '__main__':
     print('testing...')
     #print(ParseData(['dst_ip', 'src_ip', 'proto']))
     #print(RunTestScript())
     #print(IsPMACCTInstalled())
-    print(GetNetworkInterfaces())
+    #print(GetNetworkInterfaces())
+    BuildConfFile('wlan', ['src_ip', 'dst_ip'], 'usefulename.csv')
