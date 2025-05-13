@@ -174,7 +174,7 @@ class Bridge(QObject):
     @Slot()
     def CaptureNetworkData(self):
         cols = self.getSelectedColumns()
-        data = pmacct.ParseData(cols)
+        data = pmacct.GetData()
         self.dataModel.updateData(cols, data)
 
     @Slot(bool)
@@ -197,6 +197,8 @@ class Bridge(QObject):
         return selectedCols
     
 if __name__ == '__main__':
+    print('initizlation data')
+    pmacct.Init()
     app = QGuiApplication(sys.argv)
 
     QQuickStyle.setStyle("Material")
