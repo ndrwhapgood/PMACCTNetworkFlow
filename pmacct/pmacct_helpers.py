@@ -6,7 +6,7 @@ import time
 import mysql.connector as mysql
 
 #preserve order to keep things aligned with the database.
-primitives = ['mac_src', 'mac_dst', 'vlan_in', 'ip_src', 'ip_dst', 'src_port', 'dst_port', 'ip_proto', 'packets', 'bytes' 'flows']
+primitives = ['mac_src', 'mac_dst', 'vlan_in', 'ip_src', 'ip_dst', 'src_port', 'dst_port', 'ip_proto', 'packets', 'bytes', 'flows', 'class']
 defaults = ['ip_src', 'ip_dst', 'src_port', 'dst_port', 'ip_proto']
 friendlyName = {'ip_src': 'Source IP Address', 'ip_dst': 'Destination IP Address', 'src_port': 'Source Port', 'dst_port': 'Destination Port', 'ip_proto': 'Protocol'}
 
@@ -34,6 +34,9 @@ def InstallPMACCT():
 def RunTestScript():
     return subprocess.run(['bash', 'pmacct/test.sh'], capture_output=True, text=True)
 
+def StartDaemon(iface):
+    print('staring daemon')
+
 def ParseData(cols):
     total_data = []
     with open('pmacct/sample.csv', newline='') as sampleData:
@@ -55,7 +58,6 @@ def ParseData(cols):
     return filtered_data
 
 def Init():
-    print('getting data')
     pmacct_db = mysql.connect(
         host='localhost',
         user='pmacct',
@@ -63,8 +65,7 @@ def Init():
         database='pmacct'
     )
     cursor = pmacct_db.cursor()
-    print('getting top 10 rows')
-    cursor.execute('select * from acct limit 10')
+    cursor.execute('select * from acct limit 50')
     
     # prefetching data for testing.
     global data

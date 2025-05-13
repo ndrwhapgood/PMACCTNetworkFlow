@@ -99,6 +99,12 @@ class ColumnOption(QAbstractListModel):
     def getSelectedColsDisplayName(self):
         checked_cols = filter(self.isChecked, self._data)
         return list(map(lambda c: c['friendlyName'] if self._useFriendlyNames else c['name'], checked_cols))
+    
+    def getSelectedColIndexes(self):
+        return list(map(lambda x: self._data.index(x), filter(lambda x: x['checked'], self._data)))
+    
+    def getDisplayNames(self):
+        return list(map(lambda c: c['friendlyName'] if self._useFriendlyNames else c['name'], self._data))
 
 class DataTableModel(QAbstractTableModel):
     def __init__(self, data=[], headers=[]):
@@ -131,10 +137,17 @@ class DataTableModel(QAbstractTableModel):
             return True
         return False
     
-    def updateData(self, headers, data):
+    def updateData(self, indexes, headers, table):
+        # filter data based on indexes
+        headers = [headers[i] for i in indexes]
+        data = []
+        for row in table:
+            d = [row[i] for i in indexes]
+            data.append(d)
         self._data = data
-        self.updateHeaders(headers)
+        self._data.insert(0, headers)
         self.notifyChange()
+        self.updateHeaders(headers)
 
     def updateHeaders(self, headers):
         self.beginResetModel()
@@ -173,9 +186,10 @@ class Bridge(QObject):
 
     @Slot()
     def CaptureNetworkData(self):
-        cols = self.getSelectedColumns()
+        indexes = self.columnOptionsModel.getSelectedColIndexes()
         data = pmacct.GetData()
-        self.dataModel.updateData(cols, data)
+        headers = self.columnOptionsModel.getDisplayNames()
+        self.dataModel.updateData(indexes, headers, data)
 
     @Slot(bool)
     def toggleFriendlyNames(self, state):
@@ -195,6 +209,9 @@ class Bridge(QObject):
             if co['checked']:
                 selectedCols.append(co['name'])
         return selectedCols
+    
+    async def refreshData():
+        print('refreshing data')
     
 if __name__ == '__main__':
     print('initizlation data')
