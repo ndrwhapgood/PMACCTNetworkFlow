@@ -19,14 +19,14 @@ ApplicationWindow {
     GridLayout {
         id: grid
         columns: 2
-        rows: 2
+        rows: 3
         anchors.fill: parent
 
         Pane {
             id: side_panel
             Layout.row: 0
             Layout.column: 0
-            Layout.rowSpan: 2
+            Layout.rowSpan: 3
             Layout.columnSpan: 1
             Layout.fillHeight: true
             Layout.preferredWidth: 200
@@ -74,36 +74,48 @@ ApplicationWindow {
 
             Material.elevation: 6
 
-            Row {
-                spacing: 50
-                Button {
-                    id: captureButton
-                    Layout.topMargin: 10
-                    text: 'Start Capture'
-                    enabled: bridge.isInstalled
+            RowLayout {
+                anchors.fill: parent
+                ColumnLayout {
 
-                    onClicked: {
-                        bridge.CaptureNetworkData()
+                    RowLayout {
+                        Button {
+                            id: captureButton
+                            text: 'Start Capture'
+
+                            onClicked: {
+                                bridge.CaptureNetworkData()
+                            }
+                        }
+                        signal toggleFriendlyNames(bool checked)
+                    }
+
+                    RowLayout {
+                        CheckBox {
+                            text: 'Use Friendly Names'
+                            onCheckedChanged: {
+                                bridge.toggleFriendlyNames(checked)
+                            }
+                        }
                     }
                 }
-                signal toggleFriendlyNames(bool checked)
 
-                CheckBox {
-                    Layout.topMargin: 10
-                    text: 'Use Friendly Names'
-                    onCheckedChanged: {
-                        bridge.toggleFriendlyNames(checked)
+                ColumnLayout {
+                    anchors.right: parent.right
+                    RowLayout {
+
                     }
-                }
-            }
-
-            DelayButton {
-                Layout.topMargin: 10
-                anchors.right: parent.right
-                text: 'Install PMACCT'
-                delay: 500
-                onActivated: {
-                    bridge.InstallPMACCT()
+                    RowLayout {
+                        DelayButton {
+                            Layout.topMargin: 10
+                            anchors.right: parent.right
+                            text: 'Install PMACCT'
+                            delay: 500
+                            onActivated: {
+                                bridge.InstallPMACCT()
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -126,7 +138,7 @@ ApplicationWindow {
 
                 delegate: Item {
                     implicitHeight: 30
-                    implicitWidth: 150
+                    implicitWidth: 175
 
                     Item {
                         anchors.centerIn: parent
@@ -139,6 +151,23 @@ ApplicationWindow {
                         }
                     }
                 }
+            }
+        }
+
+        Pane {
+            id: save_panel
+            Layout.row: 2
+            Layout.column: 1
+            Layout.rowSpan: 1
+            Layout.columnSpan: 1
+            Layout.fillWidth: true
+            height: 300
+
+            Material.elevation: 6
+
+            Button {
+                text: 'Save'
+                anchors.right: parent.right
             }
         }
     }

@@ -8,7 +8,7 @@ from datetime import date
 
 #preserve order to keep things aligned with the database.
 primitives = ['mac_src', 'mac_dst', 'vlan_in', 'ip_src', 'ip_dst', 'src_port', 'dst_port', 'ip_proto', 'packets', 'bytes', 'flows', 'class']
-defaults = ['ip_src', 'ip_dst', 'src_port', 'dst_port', 'ip_proto']
+defaults = ['ip_src', 'ip_dst', 'src_port', 'dst_port', 'ip_proto' ,'packets', 'bytes', 'class']
 friendlyName = {'ip_src': 'Source IP Address', 'ip_dst': 'Destination IP Address', 'src_port': 'Source Port', 'dst_port': 'Destination Port', 'ip_proto': 'Protocol'}
 
 def GetColOptions():
@@ -36,12 +36,23 @@ def RunTestScript():
     return subprocess.run(['bash', 'pmacct/test.sh'], capture_output=True, text=True)
 
 def BuildConfig(iface):
-    return ''
+    iface_key = 'pcap_interface'
+    with open('pmacct/pmacct.conf', 'r') as confFile:
+        lines = confFile.readlines()
+
+    with open('pmacct/pmacct.conf', 'w') as confFile:
+        for line in lines:
+            if line.startswith(iface_key):
+                iface_key_value = iface_key + ': ' + iface
+                confFile.write(iface_key_value)
+            else:
+                confFile.write(line)
 
 def StartDaemon(iface):
-    # set up config file
     print('starting daemon')
-    call('pmacctd -f pmacct/pmacct.conf', shell=True)
+    #BuildConfig(iface)
+    global daemon_name 
+    daemon_name = subprocess.Popen(['pmacctd -f pmacct/pmacct.conf'], shell=True)
 
 def Init():
     pmacct_db = mysql.connect(
@@ -51,7 +62,7 @@ def Init():
         database='pmacct'
     )
     cursor = pmacct_db.cursor()
-    cursor.execute('select * from acct limit 5')
+    cursor.execute('select * from acct limit 100')
     
     # prefetching data for testing.
     global data
@@ -64,12 +75,18 @@ def Init():
 def GetData():
     return data
 
+def StartCapture(iface):
+    print('starting capture')
+    BuildConfig(iface)
+
 def FindCleverFileName(indexes):
     # not so clever way to finding names
     if len(indexes) == len(primitives):
         return 'kitchen_sink'
     elif indexes == [3, 4]:
         return 'essentials'
+    elif len(indexes) == 1:
+        return 'why'
     elif indexes == [11]:
         return 'okay'
     # concat primitive names?
@@ -96,7 +113,6 @@ def SaveData(indexes):
         writer.writerows(data)
 
     print('done')
-
 
 if __name__ == '__main__':
     print('testing...')

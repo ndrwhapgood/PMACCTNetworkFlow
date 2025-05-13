@@ -182,6 +182,7 @@ class Bridge(QObject):
     @Slot()
     def CaptureNetworkData(self):
         indexes = self.columnOptionsModel.getSelectedColIndexes()
+        #data = pmacct.StartCapture(self.selectedInterface)
         data = pmacct.GetData()
         headers = self.columnOptionsModel.getDisplayNames()
         self.dataModel.updateData(indexes, headers, data)
@@ -195,22 +196,13 @@ class Bridge(QObject):
     
     @Slot(str)
     def setNetworkInterface(self, interface):
-        print(f'selected interface {interface}')
-
-    def getSelectedColumns(self):
-        selectedCols = []
-        #not a good way to do this, improve later.
-        for co in self.columnOptionsModel._data:
-            if co['checked']:
-                selectedCols.append(co['name'])
-        return selectedCols
+        self.selectedInterface = interface
     
     def saveData(self):
         pmacct.SaveData(self.columnOptionsModel.getSelectedColIndexes())
     
     
 if __name__ == '__main__':
-    print('initizlation data')
     pmacct.Init()
     app = QGuiApplication(sys.argv)
 
