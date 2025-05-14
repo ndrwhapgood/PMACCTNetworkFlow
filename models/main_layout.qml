@@ -10,8 +10,8 @@ import io.qt.textproperties 1.0
 ApplicationWindow {
     id: main_page
     title: 'Network Flow Viewer'
-    width:1920
-    height: 1080
+    width: Screen.width
+    height: Screen.height
     visible: true
     Material.theme: Material.Dark
     Material.accent: Material.Purple
@@ -81,7 +81,7 @@ ApplicationWindow {
                         Button {
                             id: captureButton
                             text: 'Start Capture'
-
+                            //enabled: bridge.enableStartButton()
                             onClicked: {
                                 bridge.CaptureNetworkData()
                             }
@@ -200,7 +200,7 @@ ApplicationWindow {
             height: 300
 
             Material.elevation: 6
-
+            
             Button {
                 text: 'Save'
                 anchors.right: parent.right

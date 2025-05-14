@@ -6,13 +6,12 @@
 from __future__ import annotations
 
 import sys
-import asyncio
+import time
 
 from PySide6.QtCore import QObject, Slot, QModelIndex, Qt, QAbstractListModel, QAbstractTableModel
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine, QmlElement
 from PySide6.QtQuickControls2 import QQuickStyle
-import qasync
 
 import pmacct.pmacct_helpers as pmacct
 
@@ -171,7 +170,6 @@ class Bridge(QObject):
         super().__init__()
         self.columnOptionsModel = columnModel
         self.dataModel = dataModel
-        self.isInstalled = pmacct.IsPMACCTInstalled()
         self.selectedInterface = pmacct.GetNetworkInterfaces()[0] #hopefully this is never empty
         self.hasStarted = False
         self.rowLimit = 100
@@ -180,16 +178,14 @@ class Bridge(QObject):
     def InstallPMACCT(self):
         #TODO not woring as expected
         result = pmacct.InstallPMACCT()
-        if result.stdout == '':
-            self.isInstalled = True
 
     @Slot()
     def CaptureNetworkData(self):
         indexes = self.columnOptionsModel.getSelectedColIndexes()
-        if not self.hasStarted:
-            pmacct.StartDaemon(self.selectedInterface)
-            self.hasStarted = True
-        data = pmacct.GetDisplayData(self.rowLimit)
+        pmacct.StartDaemon(self.selectedInterface)
+        self.hasStarted = True
+        time.sleep(3) # bad way of doing this, improve later
+        data = pmacct.GetData(self.rowLimit)
         headers = self.columnOptionsModel.getDisplayNames()
         self.dataModel.updateData(indexes, headers, data)
 
@@ -205,6 +201,10 @@ class Bridge(QObject):
         self.selectedInterface = interface
         # we only start one daemon at a time
         self.hasStarted = False
+    
+    @Slot()
+    def enableStartButton(self):
+        return not self.hasStarted
 
     @Slot(str)
     def updateRowLimit(self, limit):
@@ -219,22 +219,22 @@ class Bridge(QObject):
 
     @Slot()
     def updateData(self):
-        print('updating data')
         indexes = self.columnOptionsModel.getSelectedColIndexes()
-        data = pmacct.GetDisplayData(self.rowLimit)
+        data = pmacct.GetData(self.rowLimit)
         headers = self.columnOptionsModel.getDisplayNames()
         self.dataModel.updateData(indexes, headers, data)
-
+        print(self.getFunFacts())
     
+    @Slot()
     def saveData(self):
         pmacct.SaveData(self.columnOptionsModel.getSelectedColIndexes())
+
+    def getFunFacts(self):
+        return pmacct.GetFunFacts()
     
 if __name__ == '__main__':
     pmacct.Init()
     app = QGuiApplication(sys.argv)
-
-    # loop = qasync.QEventLoop(app)
-    # asyncio.set_event_loop(loop)
 
     QQuickStyle.setStyle("Material")
     engine = QQmlApplicationEngine()

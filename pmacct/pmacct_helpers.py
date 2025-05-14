@@ -5,11 +5,14 @@ from subprocess import call
 import netifaces
 import mysql.connector as mysql
 from datetime import date
+import time
 
 #preserve order to keep things aligned with the database.
 primitives = ['mac_src', 'mac_dst', 'vlan_in', 'ip_src', 'ip_dst', 'src_port', 'dst_port', 'ip_proto', 'packets', 'bytes', 'flows', 'class']
 defaults = ['ip_src', 'ip_dst', 'src_port', 'dst_port', 'ip_proto' ,'packets', 'bytes', 'class']
 friendlyName = {'ip_src': 'Source IP Address', 'ip_dst': 'Destination IP Address', 'src_port': 'Source Port', 'dst_port': 'Destination Port', 'ip_proto': 'Protocol'}
+
+clr_cmd = 'TRUNCATE TABLE acct'
 
 def GetColOptions():
     options = []
@@ -25,15 +28,8 @@ def GetColOptions():
 def GetNetworkInterfaces():
     return netifaces.interfaces()
 
-def IsPMACCTInstalled():
-    # probably doens't need a script, clean up later
-    return not subprocess.run(['bash', 'pmacct/check_install.sh'], capture_output=True, text=True) == ''
-
 def InstallPMACCT():
     return subprocess.run(['bash', 'pmacct/install.sh'], capture_output=True, text=True)
-
-def RunTestScript():
-    return subprocess.run(['bash', 'pmacct/test.sh'], capture_output=True, text=True)
 
 def BuildConfig(iface):
     iface_key = 'pcap_interface'
@@ -49,7 +45,7 @@ def BuildConfig(iface):
                 confFile.write(line)
 
 def StartDaemon(iface):
-    print(f'starting daemon on {iface}')
+    print(f'summoning daemon on {iface}')
     BuildConfig(iface)
     call('sudo pmacctd -f pmacct/pmacct.conf -F tmp.txt', shell=True)    
 
@@ -62,38 +58,44 @@ def KillDaemon():
 
 
 def Init():
-    global pmacct_db # global to keep the db connection persistant.
     pmacct_db = mysql.connect(
         host='localhost',
-        user='pmacct',
-        password='arealsmartpwd',
+        user='client',
+        password='password',
         database='pmacct'
     )
-    # refresh since daemon will write to the db regardless of interface.
-    ClearData()
 
-def GetData():
     cursor = pmacct_db.cursor()
-    cursor.execute('select * from acct orlimit 100')
-    data = []
+    cursor.execute(clr_cmd)
+
+    cursor.close()
+    pmacct_db.close()
+
+def GetData(limit):
+    pmacct_db = mysql.connect(
+        host='localhost',
+        user='client',
+        password='password',
+        database='pmacct'
+    )
+
+    cursor = pmacct_db.cursor()
+    cmd = f'SELECT {", ".join(primitives)} FROM acct ORDER BY updated_time DESC LIMIT {limit};'
+    cursor.execute(cmd)
+
+    d = []
     for row in cursor:
-        data.append(row)
+        d.append(row)
+    global data # set global data here to sync ui with backend
+    data = d
+
+    cursor.close()
+    pmacct_db.close()
 
     return data
 
-def GetDisplayData(limit):
-    cursor = pmacct_db.cursor()
-    sql_cmd = f'select {", ".join(primitives)} from acct order by updated_time limit {limit};'
-    cursor.execute(sql_cmd)
-    data = []
-    for row in cursor:
-        data.append(row)
+def GetCurrentDataContext():
     return data
-
-def ClearData():
-    # clear db when we change interface
-    cursor = pmacct_db.cursor()
-    cursor.execute('truncate table acct')
 
 def FindCleverFileName(indexes):
     # not so clever way to finding names
@@ -115,11 +117,10 @@ def SaveData(indexes):
     if not os.path.exists(dir):
         os.makedirs(dir)
 
-    # calculate clever file name
     cleverName = FindCleverFileName(indexes)
     fileName = dir + '/' + cleverName + '.csv'
     header = [primitives[i] for i in indexes]
-    table = GetData()
+    table = GetCurrentDataContext()
     data = []
     for row in table:
         d = [row[i] for i in indexes]
@@ -130,22 +131,43 @@ def SaveData(indexes):
         writer.writerow(header)
         writer.writerows(data)
 
-    print('done')
+def CalculateBytes():
+    current_data = GetCurrentDataContext()
+    total_bytes = 0
+    for d in current_data:
+        total_bytes = total_bytes + d[9]
+    
+    i = 0
+    scale = ['', 'K', 'M', 'G']    # if you need more than this you have a problem
+    while int(total_bytes / 1000) > 1 and (i < len(scale) -1):
+        total_bytes = int(total_bytes / 1000)
+        i = i + 1
 
-def FindFunFacts():
-    # get stuff like, what src address has sent the most data
-    # typical bytes per packet
-    # most common class
-    return []
+    return f'You have gotten {total_bytes} {scale[i]}B of data'
+
+def FindMostCommonClass():
+    counts = {}
+    for d in data:
+        key = d[11].split('/')[1] # expected <name>/<name>
+        # ignore unknows
+        if not key == 'Unknown':
+            if not key in counts:
+                counts[key] = 1
+            else:
+                counts[key] = counts[key] + 1
+
+    return f'You have interacted with {max(counts)} {counts[max(counts)]} times.'
+
+def GetFunFacts():
+    # possible optimizations would be do to the calculations through sql.
+    facts = []
+    facts.append(CalculateBytes())
+    facts.append(FindMostCommonClass())
+
+    return facts
 
 if __name__ == '__main__':
     print('testing...')
-    #print(RunTestScript())
-    #print(IsPMACCTInstalled())
-    #print(GetNetworkInterfaces())
-    #BuildConfFile('wlan', ['src_ip', 'dst_ip'], 'usefulename.csv')
-    #Init()
-    #ClearData()
-    #print(GetData())
-    #SaveData([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
-    #StartDaemon('wlp6s0')
+    GetData(1200)
+    print(CalculateBytes())
+    print(FindMostCommonClass())
