@@ -98,15 +98,32 @@ ApplicationWindow {
                         }
                     }
                 }
+                ColumnLayout {
+                    RowLayout {
+                        Button {
+                            text: 'Stop'
+                            onClicked: {
+                                bridge.killDeamon()
+                            }
+                        }
+                    }
+                    RowLayout {
+                        Button {
+                            text: 'Update'
+                            onClicked: {
+                                bridge.updateData()
+                            }
+                        }
+                    }
+                }
 
                 ColumnLayout {
                     RowLayout {
                         TextField {
                             id: limit
-                            Layout.alignment: Qt.AlignLeft
                             width: 150
                             placeholderText: 'Row Limit'
-                            
+
                             onTextChanged: {
                                 bridge.updateRowLimit(limit.text)
                             }
@@ -119,17 +136,16 @@ ApplicationWindow {
                         }
                     }
                 }
-                
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignRight
-                    RowLayout {
 
-                    }
+
+                ColumnLayout {
+                    // empty row to put the button in the corner.
+                    RowLayout { }
                     RowLayout {
                         DelayButton {
                             Layout.topMargin: 10
                             Layout.alignment: Qt.AlignRight
-                            text: 'Install PMACCT'
+                            text: 'Install'
                             delay: 500
                             onActivated: {
                                 bridge.InstallPMACCT()
@@ -188,6 +204,9 @@ ApplicationWindow {
             Button {
                 text: 'Save'
                 anchors.right: parent.right
+                onClicked: {
+                    bridge.saveData()
+                }
             }
         }
     }

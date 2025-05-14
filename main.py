@@ -1,4 +1,4 @@
-#TODO: 
+#TODO: refresh data async
 # Do a global check if pmacct is install, disable Start button if not.
 # More bug fixes when I just start clicking things too much.
 # Put network interface model in it's own row so the other stuff doesn't show up behind it.
@@ -6,11 +6,13 @@
 from __future__ import annotations
 
 import sys
+import asyncio
 
 from PySide6.QtCore import QObject, Slot, QModelIndex, Qt, QAbstractListModel, QAbstractTableModel
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine, QmlElement
 from PySide6.QtQuickControls2 import QQuickStyle
+import qasync
 
 import pmacct.pmacct_helpers as pmacct
 
@@ -156,13 +158,12 @@ class DataTableModel(QAbstractTableModel):
             self.dataChanged.emit(self.index(i, 0), self.index(i, 0), Qt.DisplayRole)
 
     def swapHeaderColumn(self, cols=[]):
-        # if len(self._data) > 0 and len(self._data[0]) == len(cols):
-        #TODO: clean up and test more
-        self.beginResetModel()
-        self._headers = cols
-        self.endResetModel()
-        self._data[0] = cols
-        self.notifyChange()
+        if len(self._data) > 0 and len(self._data[0]) == len(cols):
+            self.beginResetModel()
+            self._headers = cols
+            self.endResetModel()
+            self._data[0] = cols
+            self.notifyChange()
 
 @QmlElement
 class Bridge(QObject):
@@ -173,11 +174,11 @@ class Bridge(QObject):
         self.isInstalled = pmacct.IsPMACCTInstalled()
         self.selectedInterface = pmacct.GetNetworkInterfaces()[0] #hopefully this is never empty
         self.hasStarted = False
-        self.startStopText = 'Start'
         self.rowLimit = 100
 
     @Slot()
     def InstallPMACCT(self):
+        #TODO not woring as expected
         result = pmacct.InstallPMACCT()
         if result.stdout == '':
             self.isInstalled = True
@@ -185,9 +186,8 @@ class Bridge(QObject):
     @Slot()
     def CaptureNetworkData(self):
         indexes = self.columnOptionsModel.getSelectedColIndexes()
-        #data = pmacct.StartCapture(self.selectedInterface)
         if not self.hasStarted:
-            #pmacct.StartDaemon(self.selectedInterface)
+            pmacct.StartDaemon(self.selectedInterface)
             self.hasStarted = True
         data = pmacct.GetDisplayData(self.rowLimit)
         headers = self.columnOptionsModel.getDisplayNames()
@@ -212,14 +212,29 @@ class Bridge(QObject):
             self.rowLimit = int(limit)
         except ValueError:
             self.rowLimit = 100
+
+    @Slot()
+    def killDeamon(self):
+        pmacct.KillDaemon()
+
+    @Slot()
+    def updateData(self):
+        print('updating data')
+        indexes = self.columnOptionsModel.getSelectedColIndexes()
+        data = pmacct.GetDisplayData(self.rowLimit)
+        headers = self.columnOptionsModel.getDisplayNames()
+        self.dataModel.updateData(indexes, headers, data)
+
     
     def saveData(self):
         pmacct.SaveData(self.columnOptionsModel.getSelectedColIndexes())
     
-    
 if __name__ == '__main__':
     pmacct.Init()
     app = QGuiApplication(sys.argv)
+
+    # loop = qasync.QEventLoop(app)
+    # asyncio.set_event_loop(loop)
 
     QQuickStyle.setStyle("Material")
     engine = QQmlApplicationEngine()

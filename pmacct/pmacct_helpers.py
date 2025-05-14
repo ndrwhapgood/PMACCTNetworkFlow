@@ -49,14 +49,17 @@ def BuildConfig(iface):
                 confFile.write(line)
 
 def StartDaemon(iface):
-    print('starting daemon')
+    print(f'starting daemon on {iface}')
     BuildConfig(iface)
     call('sudo pmacctd -f pmacct/pmacct.conf -F tmp.txt', shell=True)    
 
 def KillDaemon():
     with open('tmp.txt', 'r') as name:
         pmacct_pid = name.read()
-    call(f'sudo kill -9 {pmacct_pid}')
+    call(f'sudo kill -9 {pmacct_pid}', shell=True)
+    print('daemon slain')
+    os.remove('tmp.txt')
+
 
 def Init():
     global pmacct_db # global to keep the db connection persistant.
@@ -67,7 +70,7 @@ def Init():
         database='pmacct'
     )
     # refresh since daemon will write to the db regardless of interface.
-    # testing ClearData()
+    ClearData()
 
 def GetData():
     cursor = pmacct_db.cursor()
@@ -89,7 +92,6 @@ def GetDisplayData(limit):
 
 def ClearData():
     # clear db when we change interface
-    print('clearing data')
     cursor = pmacct_db.cursor()
     cursor.execute('truncate table acct')
 
