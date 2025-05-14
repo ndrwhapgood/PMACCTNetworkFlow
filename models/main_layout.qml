@@ -77,7 +77,6 @@ ApplicationWindow {
             RowLayout {
                 anchors.fill: parent
                 ColumnLayout {
-
                     RowLayout {
                         Button {
                             id: captureButton
@@ -100,6 +99,27 @@ ApplicationWindow {
                     }
                 }
 
+                ColumnLayout {
+                    RowLayout {
+                        TextField {
+                            id: limit
+                            Layout.alignment: Qt.AlignLeft
+                            width: 150
+                            placeholderText: 'Row Limit'
+                            
+                            onTextChanged: {
+                                bridge.updateRowLimit(limit.text)
+                            }
+
+                            Component.onCompleted: {
+                                if (text === '') {
+                                    text = '100'
+                                }
+                            }
+                        }
+                    }
+                }
+                
                 ColumnLayout {
                     Layout.alignment: Qt.AlignRight
                     RowLayout {

@@ -67,26 +67,31 @@ def Init():
         database='pmacct'
     )
     # refresh since daemon will write to the db regardless of interface.
-    ClearData()
+    # testing ClearData()
 
 def GetData():
     cursor = pmacct_db.cursor()
-    cursor.execute('select * from acct limit 100')
+    cursor.execute('select * from acct orlimit 100')
     data = []
     for row in cursor:
         data.append(row)
 
     return data
 
+def GetDisplayData(limit):
+    cursor = pmacct_db.cursor()
+    sql_cmd = f'select {", ".join(primitives)} from acct order by updated_time limit {limit};'
+    cursor.execute(sql_cmd)
+    data = []
+    for row in cursor:
+        data.append(row)
+    return data
+
 def ClearData():
     # clear db when we change interface
     print('clearing data')
     cursor = pmacct_db.cursor()
-    cursor.execute('TRUNCATE TABLE acct')
-
-def RefreshData():
-    cursor = pmacct_db.cursor()
-    cursor.execute('select * from acct limit 100')
+    cursor.execute('truncate table acct')
 
 def FindCleverFileName(indexes):
     # not so clever way to finding names
@@ -141,4 +146,4 @@ if __name__ == '__main__':
     #ClearData()
     #print(GetData())
     #SaveData([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
-    StartDaemon('wlp6s0')
+    #StartDaemon('wlp6s0')
