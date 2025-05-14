@@ -1,28 +1,33 @@
-echo ""
-#echo "We will now install sofware for generating data from network interfaces (pmacct)"
-#echo "This will take some time to complete, press enter to continue:"
-#read resp
+echo ' running installer'
 
-#
-# Install pmacct for collecting network flow data
-#
-if ! [ -x "$(command -v pmacctd)" ]; then
-# Obtain 1.7.7 version of pmacct and make/install
-wget --no-check-certificate --content-disposition http://www.pmacct.net/pmacct-1.7.7.tar.gz
-tar zxvf pmacct-1.7.7.tar.gz
+get clone clone https://github.com/ntop/nDPI -b 4.4-stable
+wget --no-check-certificate --content-disposition http://www.pmacct.net/pmacct-1.7.8.tar.gz
+tar zxvf pmacct-1.7.8.tar.gz
 
-echo ""
-echo "Building pmacct..."
-echo ""
-cd pmacct-1.7.7
+echo 'building nDPI'
+cd nDPI
+./autogen.sh
 ./configure
 make
-echo "Installing pmacct..."
-echo ""
 make install
+ldconfig
 cd ..
-rm pmacct-1.7.7.tar.gz
-rm -rf pmacct-1.7.7
-else
-echo "pmacct already installed."
-fi
+
+echo 'install mysql client'
+sudo apt install mysql-client-core-8.0
+
+echo 'building pmacct'
+cd pmacct-1.7.8
+./configure --enable-ndpi --enable-mysql
+make
+make install
+
+echo 'cleaning up'
+cd ..
+rm pmacct-1.7.8.tar.gz
+rm -rf pmacct-1.7.8
+rm -rf nDPI
+
+echo 'running sql scripts'
+sudo mysql -u root -p < sql/init.sql
+sudo mysql -u root -p < sql/grant.sql
