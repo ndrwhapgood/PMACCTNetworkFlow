@@ -101,14 +101,14 @@ ApplicationWindow {
                 }
 
                 ColumnLayout {
-                    anchors.right: parent.right
+                    Layout.alignment: Qt.AlignRight
                     RowLayout {
 
                     }
                     RowLayout {
                         DelayButton {
                             Layout.topMargin: 10
-                            anchors.right: parent.right
+                            Layout.alignment: Qt.AlignRight
                             text: 'Install PMACCT'
                             delay: 500
                             onActivated: {

@@ -172,6 +172,7 @@ class Bridge(QObject):
         self.dataModel = dataModel
         self.isInstalled = pmacct.IsPMACCTInstalled()
         self.selectedInterface = pmacct.GetNetworkInterfaces()[0] #hopefully this is never empty
+        self.hasStarted = False
 
     @Slot()
     def InstallPMACCT(self):
@@ -183,6 +184,9 @@ class Bridge(QObject):
     def CaptureNetworkData(self):
         indexes = self.columnOptionsModel.getSelectedColIndexes()
         #data = pmacct.StartCapture(self.selectedInterface)
+        if not self.hasStarted:
+            pmacct.StartDaemon(self.selectedInterface)
+            self.hasStarted = True
         data = pmacct.GetData()
         headers = self.columnOptionsModel.getDisplayNames()
         self.dataModel.updateData(indexes, headers, data)
@@ -197,6 +201,8 @@ class Bridge(QObject):
     @Slot(str)
     def setNetworkInterface(self, interface):
         self.selectedInterface = interface
+        # we only start one daemon at a time
+        self.hasStarted = False
     
     def saveData(self):
         pmacct.SaveData(self.columnOptionsModel.getSelectedColIndexes())

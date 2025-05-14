@@ -50,39 +50,50 @@ def BuildConfig(iface):
 
 def StartDaemon(iface):
     print('starting daemon')
-    #BuildConfig(iface)
-    global daemon_name 
-    daemon_name = subprocess.Popen(['pmacctd -f pmacct/pmacct.conf'], shell=True)
+    BuildConfig(iface)
+    call('sudo pmacctd -f pmacct/pmacct.conf -F tmp.txt', shell=True)    
+
+def KillDaemon():
+    with open('tmp.txt', 'r') as name:
+        pmacct_pid = name.read()
+    call(f'sudo kill -9 {pmacct_pid}')
 
 def Init():
+    global pmacct_db # global to keep the db connection persistant.
     pmacct_db = mysql.connect(
         host='localhost',
         user='pmacct',
         password='arealsmartpwd',
         database='pmacct'
     )
-    cursor = pmacct_db.cursor()
-    cursor.execute('select * from acct limit 100')
-    
-    # prefetching data for testing.
-    global data
-    data = []
-    for r in cursor:
-        data.append(r)
-
-    return data
+    # refresh since daemon will write to the db regardless of interface.
+    ClearData()
 
 def GetData():
+    cursor = pmacct_db.cursor()
+    cursor.execute('select * from acct limit 100')
+    data = []
+    for row in cursor:
+        data.append(row)
+
     return data
 
-def StartCapture(iface):
-    print('starting capture')
-    BuildConfig(iface)
+def ClearData():
+    # clear db when we change interface
+    print('clearing data')
+    cursor = pmacct_db.cursor()
+    cursor.execute('TRUNCATE TABLE acct')
+
+def RefreshData():
+    cursor = pmacct_db.cursor()
+    cursor.execute('select * from acct limit 100')
 
 def FindCleverFileName(indexes):
     # not so clever way to finding names
     if len(indexes) == len(primitives):
         return 'kitchen_sink'
+    # if all indexes are in the defaults
+    # return default
     elif indexes == [3, 4]:
         return 'essentials'
     elif len(indexes) == 1:
@@ -114,6 +125,12 @@ def SaveData(indexes):
 
     print('done')
 
+def FindFunFacts():
+    # get stuff like, what src address has sent the most data
+    # typical bytes per packet
+    # most common class
+    return []
+
 if __name__ == '__main__':
     print('testing...')
     #print(RunTestScript())
@@ -121,6 +138,7 @@ if __name__ == '__main__':
     #print(GetNetworkInterfaces())
     #BuildConfFile('wlan', ['src_ip', 'dst_ip'], 'usefulename.csv')
     #Init()
+    #ClearData()
     #print(GetData())
     #SaveData([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
     StartDaemon('wlp6s0')

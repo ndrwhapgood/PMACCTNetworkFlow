@@ -17,5 +17,6 @@ create table acct (
     bytes BIGINT UNSIGNED NOT NULL,
     flows INT UNSIGNED DEFAULT NULL,
     class CHAR(16) NOT NULL,
-    PRIMARY KEY (mac_src, mac_dst, vlan_in, ip_src, ip_dst, src_port, dst_port, ip_proto, class)
+    `updated_time` TIMESTAMP default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
+    PRIMARY KEY (mac_src, mac_dst, vlan_in, ip_src, ip_dst, src_port, dst_port, ip_proto, class, updated_time)
 );
