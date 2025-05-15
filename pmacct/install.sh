@@ -1,8 +1,13 @@
 echo ' running installer'
 
-get clone clone https://github.com/ntop/nDPI -b 4.4-stable
-wget --no-check-certificate --content-disposition http://www.pmacct.net/pmacct-1.7.8.tar.gz
-tar zxvf pmacct-1.7.8.tar.gz
+git clone https://github.com/ntop/nDPI -b 4.8-stable
+wget --no-check-certificate --content-disposition http://www.pmacct.net/pmacct-1.7.9.tar.gz
+tar zxvf pmacct-1.7.9.tar.gz
+
+echo 'nDPI dependencies'
+sudo apt install autoconf automake
+sudo apt install libtool
+sudo apt install libpcap-dev # libpcap-devel in rhel
 
 echo 'building nDPI'
 cd nDPI
@@ -14,18 +19,25 @@ ldconfig
 cd ..
 
 echo 'install mysql client'
-sudo apt install mysql-client-core-8.0
+sudo apt install mysql-client-core-8.0 # dnf install mysql-server
+
+sudo systemctl start mysqld
+sudo systemctl enable mysqld
+
+# sudo apt install libnuma-dev 
 
 echo 'building pmacct'
-cd pmacct-1.7.8
+cd pmacct-1.7.9
 ./configure --enable-ndpi --enable-mysql
-make
+make #issue here: error: pathspec 'src/external_libs/libcdada' did not match any file(s) known to git
+#potential source of the problem is file name conflicts with the make, works fine when I change dirs and install there.
 make install
+#solution was to change directories, since our back dir has the same name
 
 echo 'cleaning up'
 cd ..
-rm pmacct-1.7.8.tar.gz
-rm -rf pmacct-1.7.8
+rm pmacct-1.7.9.tar.gz
+rm -rf pmacct-1.7.9
 rm -rf nDPI
 
 echo 'running sql scripts'
