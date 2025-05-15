@@ -50,9 +50,7 @@ def StartDaemon(iface):
     call('sudo pmacctd -f pmacct/pmacct.conf -F tmp.txt', shell=True)    
 
 def KillDaemon():
-    with open('tmp.txt', 'r') as name:
-        pmacct_pid = name.read()
-    call(f'sudo kill -9 {pmacct_pid}', shell=True)
+    call('sudo kill -9 $(sudo cat tmp.txt)', shell=True)
     print('daemon slain')
     os.remove('tmp.txt')
 
@@ -93,6 +91,47 @@ def GetData(limit):
     pmacct_db.close()
 
     return data
+
+def GetDataV2(limit, filters={}):
+    # this opens up more possibilities for sql injection bugs but not my problem.
+    # placeholder till testing is complete.
+    if len(filters) == 0:
+        return GetData(limit)
+    
+    pmacct_db = mysql.connect(
+        host='localhost',
+        user='client',
+        password='password',
+        database='pmacct'
+    )
+
+    cursor = pmacct_db.cursor()
+
+    # filter <column name>: <str>
+    # basic filter for now, we just do a check if that column contians that str
+    _f = []
+    for key in filters:
+        _f.append(f' {key} LIKE \'%{filters[key]}%\'')
+    
+    where_statements = []
+    for i in _f:
+        where_statements.append(i)
+        where_statements.append('AND')
+
+    cmd = f'SELECT {", ".join(primitives)} FROM acct WHERE {" ".join(where_statements).strip('AND ')} LIMIT {limit}'
+    cursor.execute(cmd)
+
+    d = []
+    for row in cursor:
+        d.append(row)
+    global data
+    data = d
+    
+    cursor.close()
+    pmacct_db.close()
+
+    return data
+    
 
 def GetCurrentDataContext():
     return data
@@ -146,17 +185,20 @@ def CalculateBytes():
     return f'You have gotten {total_bytes} {scale[i]}B of data'
 
 def FindMostCommonClass():
+    if len(data) == 0:
+        return ''
+    
     counts = {}
     for d in data:
         key = d[11].split('/')[1] # expected <name>/<name>
-        # ignore unknows
+        # ignore unknowns
         if not key == 'Unknown':
             if not key in counts:
                 counts[key] = 1
             else:
                 counts[key] = counts[key] + 1
-
-    return f'You have interacted with {max(counts)} {counts[max(counts)]} times.'
+    largest_key = max(counts, key=counts.get)
+    return f'You have interacted with {largest_key} {counts[largest_key]} times.'
 
 def GetFunFacts():
     # possible optimizations would be do to the calculations through sql.
@@ -168,6 +210,7 @@ def GetFunFacts():
 
 if __name__ == '__main__':
     print('testing...')
-    GetData(1200)
-    print(CalculateBytes())
-    print(FindMostCommonClass())
+    # GetData(41)
+    # print(CalculateBytes())
+    # print(FindMostCommonClass())
+    GetDataV2(100, {'class': 'youtube', 'src_port': '0'})

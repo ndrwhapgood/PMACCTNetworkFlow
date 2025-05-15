@@ -1,4 +1,5 @@
 #TODO: refresh data async
+# fix button enable/disable logic
 # Do a global check if pmacct is install, disable Start button if not.
 # More bug fixes when I just start clicking things too much.
 # Put network interface model in it's own row so the other stuff doesn't show up behind it.
@@ -8,7 +9,7 @@ from __future__ import annotations
 import sys
 import time
 
-from PySide6.QtCore import QObject, Slot, QModelIndex, Qt, QAbstractListModel, QAbstractTableModel
+from PySide6.QtCore import QObject, Slot, QModelIndex, Qt, QAbstractListModel, QAbstractTableModel, Property, Signal
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine, QmlElement
 from PySide6.QtQuickControls2 import QQuickStyle
@@ -171,19 +172,34 @@ class Bridge(QObject):
         self.columnOptionsModel = columnModel
         self.dataModel = dataModel
         self.selectedInterface = pmacct.GetNetworkInterfaces()[0] #hopefully this is never empty
-        self.hasStarted = False
+        self._enableStartButton = True
         self.rowLimit = 100
+        self.dataFilter = ''
+
+    buttonEnabledChanged = Signal()
+
+    @Property(bool, notify=buttonEnabledChanged)
+    def enableStartButton(self):
+        return self._enableStartButton
+    
+    @enableStartButton.setter
+    def enableStartButton(self, value):
+        if self._enableStartButton != value:
+            self._enableStartButton = value
+            self.buttonEnabledChanged.emit()
+
+    @Slot()
+    def toggleStartButton(self):
+        self._enableStartButton = not self._enableStartButton
 
     @Slot()
     def InstallPMACCT(self):
-        #TODO not woring as expected
-        result = pmacct.InstallPMACCT()
+        pmacct.InstallPMACCT()
 
     @Slot()
-    def CaptureNetworkData(self):
+    def captureNetworkData(self):
         indexes = self.columnOptionsModel.getSelectedColIndexes()
         pmacct.StartDaemon(self.selectedInterface)
-        self.hasStarted = True
         time.sleep(3) # bad way of doing this, improve later
         data = pmacct.GetData(self.rowLimit)
         headers = self.columnOptionsModel.getDisplayNames()
@@ -199,12 +215,6 @@ class Bridge(QObject):
     @Slot(str)
     def setNetworkInterface(self, interface):
         self.selectedInterface = interface
-        # we only start one daemon at a time
-        self.hasStarted = False
-    
-    @Slot()
-    def enableStartButton(self):
-        return not self.hasStarted
 
     @Slot(str)
     def updateRowLimit(self, limit):
@@ -213,6 +223,23 @@ class Bridge(QObject):
         except ValueError:
             self.rowLimit = 100
 
+    @Slot(str)
+    def updateFilter(self, f):
+        self.dataFilter = f
+
+    def buildFilter(self):
+        #make this check more robust.
+        if len(self.dataFilter) < 5:
+            return {}
+        # simple filter
+        # expected input <name>, value; <name>, value
+        # output {<name>: <value>}
+        f = {}
+        for i in self.dataFilter.split(';'):
+            f[i.split(',')[0]] = i.split(',')[1]
+
+        return f
+
     @Slot()
     def killDeamon(self):
         pmacct.KillDaemon()
@@ -220,17 +247,16 @@ class Bridge(QObject):
     @Slot()
     def updateData(self):
         indexes = self.columnOptionsModel.getSelectedColIndexes()
-        data = pmacct.GetData(self.rowLimit)
+        data = pmacct.GetDataV2(self.rowLimit, self.buildFilter())
         headers = self.columnOptionsModel.getDisplayNames()
         self.dataModel.updateData(indexes, headers, data)
         print(self.getFunFacts())
-    
-    @Slot()
+
     def saveData(self):
         pmacct.SaveData(self.columnOptionsModel.getSelectedColIndexes())
 
     def getFunFacts(self):
-        return pmacct.GetFunFacts()
+        return " ".join(pmacct.GetFunFacts())
     
 if __name__ == '__main__':
     pmacct.Init()

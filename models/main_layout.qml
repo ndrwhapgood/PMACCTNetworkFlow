@@ -18,7 +18,7 @@ ApplicationWindow {
 
     GridLayout {
         id: grid
-        columns: 2
+        columns: 5
         rows: 3
         anchors.fill: parent
 
@@ -63,11 +63,11 @@ ApplicationWindow {
         }
 
         Pane {
-            id: control_panel
+            id: capture_panel
             Layout.row: 0
             Layout.column: 1
             Layout.rowSpan: 1
-            Layout.columnSpan: 1
+            Layout.columnSpan: 4
             Layout.fillWidth: true
             Layout.preferredHeight: 150
             Layout.alignment: Qt.AlignTop
@@ -81,9 +81,10 @@ ApplicationWindow {
                         Button {
                             id: captureButton
                             text: 'Start Capture'
-                            //enabled: bridge.enableStartButton()
+                            enabled: bridge.enableStartButton
                             onClicked: {
-                                bridge.CaptureNetworkData()
+                                bridge.captureNetworkData()
+                                bridge.toggleStartButton()
                             }
                         }
                         signal toggleFriendlyNames(bool checked)
@@ -101,17 +102,18 @@ ApplicationWindow {
                 ColumnLayout {
                     RowLayout {
                         Button {
-                            text: 'Stop'
+                            text: 'Update'
                             onClicked: {
-                                bridge.killDeamon()
+                                bridge.updateData()
                             }
                         }
                     }
                     RowLayout {
                         Button {
-                            text: 'Update'
+                            text: 'Stop'
                             onClicked: {
-                                bridge.updateData()
+                                bridge.killDeamon()
+                                bridge.toggleStartButton()
                             }
                         }
                     }
@@ -134,17 +136,26 @@ ApplicationWindow {
                                 }
                             }
                         }
+                        TextField {
+                            id: filter
+                            width: 150
+                            placeholderText: 'Filter'
+
+                            onTextChanged: {
+                                bridge.updateFilter(filter.text)
+                            }
+                        }
                     }
                 }
 
-
                 ColumnLayout {
-                    // empty row to put the button in the corner.
+                    Layout.alignment: Qt.AlignRight
+                    // empty row to push the button in the corner.
                     RowLayout { }
+
                     RowLayout {
                         DelayButton {
                             Layout.topMargin: 10
-                            Layout.alignment: Qt.AlignRight
                             text: 'Install'
                             delay: 500
                             onActivated: {
@@ -161,7 +172,7 @@ ApplicationWindow {
             Layout.row: 1
             Layout.column: 1
             Layout.rowSpan: 1
-            Layout.columnSpan: 1
+            Layout.columnSpan: 2
             Layout.fillHeight: true
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignTop
@@ -191,9 +202,26 @@ ApplicationWindow {
         }
 
         Pane {
-            id: save_panel
+            id: fun_facts
             Layout.row: 2
             Layout.column: 1
+            Layout.rowSpan: 1
+            Layout.columnSpan: 1
+            Layout.fillWidth: true
+            height: 300
+
+            Material.elevation: 6
+
+            Text {
+                text: 'fun facts'
+                color: 'white'
+            }
+        }
+
+        Pane {
+            id: save_panel
+            Layout.row: 2
+            Layout.column: 2
             Layout.rowSpan: 1
             Layout.columnSpan: 1
             Layout.fillWidth: true
