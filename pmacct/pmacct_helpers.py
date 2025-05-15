@@ -14,6 +14,16 @@ friendlyName = {'ip_src': 'Source IP Address', 'ip_dst': 'Destination IP Address
 
 clr_cmd = 'TRUNCATE TABLE acct'
 
+seed_cmd = """
+INSERT INTO acct (mac_src, mac_dst, vlan_in, ip_src, ip_dst, src_port, dst_port, ip_proto, packets, bytes, flows, class)
+VALUES
+('00:1A:2B:3C:4D:5E', '00:1A:2B:3C:4D:5E', '0', '10.0.0.1', '10.0.0.1', '0', '0', 'tcp', '1', '1', '0', 'unknown/someguy'),
+('01:1A:2B:3C:4D:5E', '01:1A:2B:3C:4D:5E', '0', '10.0.0.2', '10.0.0.2', '0', '0', 'tcp', '1', '1', '0', 'unknown/someguy'),
+('02:1A:2B:3C:4D:5E', '02:1A:2B:3C:4D:5E', '0', '10.0.0.3', '10.0.0.3', '0', '0', 'tcp', '1', '1', '0', 'unknown/someguy'),
+('03:1A:2B:3C:4D:5E', '03:1A:2B:3C:4D:5E', '0', '10.0.0.4', '10.0.0.4', '0', '0', 'tcp', '1', '1', '0', 'unknown/someguy'),
+('04:1A:2B:3C:4D:5E', '04:1A:2B:3C:4D:5E', '0', '10.0.0.5', '10.0.0.5', '0', '0', 'tcp', '1', '1', '0', 'unknown/someguy');
+"""
+
 def GetColOptions():
     options = []
     for col in primitives:
@@ -67,6 +77,21 @@ def Init():
     cursor.execute(clr_cmd)
 
     cursor.close()
+    pmacct_db.close()
+
+def SeedDatabase():
+    pmacct_db = mysql.connect(
+        host='localhost',
+        user='client',
+        password='password',
+        database='pmacct'
+    )
+
+    cursor = pmacct_db.cursor()
+    cursor.execute(seed_cmd)
+
+    cursor.close()
+    pmacct_db.commit()
     pmacct_db.close()
 
 def GetData(limit):
@@ -213,4 +238,6 @@ if __name__ == '__main__':
     # GetData(41)
     # print(CalculateBytes())
     # print(FindMostCommonClass())
-    GetDataV2(100, {'class': 'youtube', 'src_port': '0'})
+    #GetDataV2(100, {'class': 'youtube', 'src_port': '0'})
+    #Init()
+    SeedDatabase()
