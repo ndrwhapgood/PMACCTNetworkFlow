@@ -78,6 +78,8 @@ ApplicationWindow {
                 anchors.fill: parent
                 ColumnLayout {
                     RowLayout {
+                        spacing: 20
+
                         Button {
                             id: captureButton
                             text: 'Start Capture'
@@ -88,27 +90,14 @@ ApplicationWindow {
                             }
                         }
                         signal toggleFriendlyNames(bool checked)
-                    }
 
-                    RowLayout {
-                        CheckBox {
-                            text: 'Use Friendly Names'
-                            onCheckedChanged: {
-                                bridge.toggleFriendlyNames(checked)
-                            }
-                        }
-                    }
-                }
-                ColumnLayout {
-                    RowLayout {
                         Button {
                             text: 'Update'
                             onClicked: {
                                 bridge.updateData()
                             }
                         }
-                    }
-                    RowLayout {
+
                         Button {
                             text: 'Stop'
                             onClicked: {
@@ -116,11 +105,7 @@ ApplicationWindow {
                                 bridge.toggleStartButton()
                             }
                         }
-                    }
-                }
 
-                ColumnLayout {
-                    RowLayout {
                         TextField {
                             id: limit
                             width: 150
@@ -138,28 +123,28 @@ ApplicationWindow {
                         }
                         TextField {
                             id: filter
-                            width: 150
+                            width: 500
+                            Layout.fillWidth: true
                             placeholderText: 'Filter'
 
                             onTextChanged: {
                                 bridge.updateFilter(filter.text)
                             }
                         }
-                    }
-                }
-
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignRight
-                    // empty row to push the button in the corner.
-                    RowLayout { }
-
-                    RowLayout {
                         DelayButton {
                             Layout.topMargin: 10
                             text: 'Install'
                             delay: 500
                             onActivated: {
                                 bridge.InstallPMACCT()
+                            }
+                        }
+                    }
+                    RowLayout {
+                        CheckBox {
+                            text: 'Use Friendly Names'
+                            onCheckedChanged: {
+                                bridge.toggleFriendlyNames(checked)
                             }
                         }
                     }
