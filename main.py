@@ -192,6 +192,7 @@ class Bridge(QObject):
     @Slot()
     def toggleStartButton(self):
         self._enableStartButton = not self._enableStartButton
+        self.enableStartbuttonChanged.emit(self._enableStartButton)
 
     @Slot()
     def InstallPMACCT(self):
@@ -258,6 +259,17 @@ class Bridge(QObject):
 
     def saveData(self):
         pmacct.SaveData(self.columnOptionsModel.getSelectedColIndexes())
+
+    enableStartbuttonChanged = Signal(bool)
+
+    @Property(bool, notify=enableStartbuttonChanged)
+    def enableStartButton(self):
+        return self._enableStartButton
+    
+    @enableStartButton.setter
+    def enableStartButton(self, value):
+        self._enableStartButton = value
+        self.enableStartbuttonChanged.emit()
 
     funFactsChanged = Signal(str)
 
