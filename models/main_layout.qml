@@ -172,7 +172,7 @@ ApplicationWindow {
             Layout.row: 1
             Layout.column: 1
             Layout.rowSpan: 1
-            Layout.columnSpan: 2
+            Layout.columnSpan: 4
             Layout.fillHeight: true
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignTop
@@ -184,11 +184,12 @@ ApplicationWindow {
                 anchors.fill: parent
 
                 delegate: Item {
-                    implicitHeight: 30
-                    implicitWidth: 175
+                    implicitHeight: 25
+                    implicitWidth: 225
 
                     Item {
                         anchors.centerIn: parent
+                        Layout.fillWidth: true
 
                         Text {
                             anchors.centerIn: parent
@@ -206,14 +207,14 @@ ApplicationWindow {
             Layout.row: 2
             Layout.column: 1
             Layout.rowSpan: 1
-            Layout.columnSpan: 1
+            Layout.columnSpan: 3
             Layout.fillWidth: true
             height: 300
 
             Material.elevation: 6
 
             Text {
-                text: 'fun facts'
+                text: bridge.funFacts
                 color: 'white'
             }
         }
@@ -221,7 +222,7 @@ ApplicationWindow {
         Pane {
             id: save_panel
             Layout.row: 2
-            Layout.column: 2
+            Layout.column: 4
             Layout.rowSpan: 1
             Layout.columnSpan: 1
             Layout.fillWidth: true

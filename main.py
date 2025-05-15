@@ -175,6 +175,7 @@ class Bridge(QObject):
         self._enableStartButton = True
         self.rowLimit = 100
         self.dataFilter = ''
+        self._funFacts = ':)'
 
     buttonEnabledChanged = Signal()
 
@@ -200,7 +201,7 @@ class Bridge(QObject):
     def captureNetworkData(self):
         indexes = self.columnOptionsModel.getSelectedColIndexes()
         pmacct.StartDaemon(self.selectedInterface)
-        time.sleep(3) # bad way of doing this, improve later
+        time.sleep(1) # bad way of doing this, improve later
         data = pmacct.GetData(self.rowLimit)
         headers = self.columnOptionsModel.getDisplayNames()
         self.dataModel.updateData(indexes, headers, data)
@@ -250,13 +251,24 @@ class Bridge(QObject):
         data = pmacct.GetDataV2(self.rowLimit, self.buildFilter())
         headers = self.columnOptionsModel.getDisplayNames()
         self.dataModel.updateData(indexes, headers, data)
-        print(self.getFunFacts())
+        self._funFacts = " ".join(pmacct.GetFunFacts())
+        self.funFactsChanged.emit(" ".join(pmacct.GetFunFacts()))
+        
+        print(self._funFacts)
 
     def saveData(self):
         pmacct.SaveData(self.columnOptionsModel.getSelectedColIndexes())
 
-    def getFunFacts(self):
-        return " ".join(pmacct.GetFunFacts())
+    funFactsChanged = Signal(str)
+
+    @Property(str, notify=funFactsChanged)
+    def funFacts(self):
+        return self._funFacts
+    
+    @funFacts.setter
+    def funFacts(self, value):
+        self._funFacts = value
+        self.funFactsChanged.emit()
     
 if __name__ == '__main__':
     pmacct.Init()

@@ -182,7 +182,7 @@ def CalculateBytes():
         total_bytes = int(total_bytes / 1000)
         i = i + 1
 
-    return f'You have gotten {total_bytes} {scale[i]}B of data'
+    return f'You have transfed {total_bytes} {scale[i]}B of data.'
 
 def FindMostCommonClass():
     if len(data) == 0:
