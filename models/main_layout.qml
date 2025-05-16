@@ -168,6 +168,14 @@ ApplicationWindow {
                 model: networkDataModel
                 anchors.fill: parent
 
+                ScrollBar.vertical: ScrollBar {
+                policy: ScrollBar.AsNeeded
+                }
+
+                ScrollBar.horizontal: ScrollBar {
+                    policy: ScrollBar.AsNeeded
+                }
+
                 delegate: Item {
                     implicitHeight: 25
                     implicitWidth: 225

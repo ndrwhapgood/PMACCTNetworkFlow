@@ -257,6 +257,7 @@ class Bridge(QObject):
         
         print(self._funFacts)
 
+    @Slot()
     def saveData(self):
         pmacct.SaveData(self.columnOptionsModel.getSelectedColIndexes())
 
