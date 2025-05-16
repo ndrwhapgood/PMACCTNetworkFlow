@@ -254,8 +254,6 @@ class Bridge(QObject):
         self.dataModel.updateData(indexes, headers, data)
         self._funFacts = " ".join(pmacct.GetFunFacts())
         self.funFactsChanged.emit(" ".join(pmacct.GetFunFacts()))
-        
-        print(self._funFacts)
 
     @Slot()
     def saveData(self):
