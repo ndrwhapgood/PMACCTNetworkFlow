@@ -39,14 +39,14 @@ def GetNetworkInterfaces():
     return netifaces.interfaces()
 
 def InstallPMACCT():
-    return subprocess.run(['bash', 'pmacct/install.sh'], capture_output=True, text=True)
+    return subprocess.run(['bash', 'pmacct_helpers/install.sh'], capture_output=True, text=True)
 
 def BuildConfig(iface):
     iface_key = 'pcap_interface'
-    with open('pmacct/pmacct.conf', 'r') as confFile:
+    with open('pmacct_helpers/pmacct.conf', 'r') as confFile:
         lines = confFile.readlines()
 
-    with open('pmacct/pmacct.conf', 'w') as confFile:
+    with open('pmacct_helpers/pmacct.conf', 'w') as confFile:
         for line in lines:
             if line.startswith(iface_key):
                 iface_key_value = iface_key + ': ' + iface
@@ -57,7 +57,7 @@ def BuildConfig(iface):
 def StartDaemon(iface):
     print(f'summoning daemon on {iface}')
     BuildConfig(iface)
-    call('sudo pmacctd -f pmacct/pmacct.conf -F tmp.txt', shell=True)    
+    call('sudo pmacctd -f pmacct_helpers/pmacct.conf -F tmp.txt', shell=True)    
 
 def KillDaemon():
     call('sudo kill -9 $(sudo cat tmp.txt)', shell=True)

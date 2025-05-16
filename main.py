@@ -14,7 +14,7 @@ from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine, QmlElement
 from PySide6.QtQuickControls2 import QQuickStyle
 
-import pmacct.pmacct_helpers as pmacct
+import pmacct_helpers.pmacct_helpers as pmacct
 
 QML_IMPORT_NAME = "io.qt.textproperties"
 QML_IMPORT_MAJOR_VERSION = 1
