@@ -39,14 +39,15 @@ make
 make install
 echo 'cleaning up'
 cd ..
-rm pmacct-1.7.9.tar.gz
-rm -rf pmacct-1.7.9
+rm -rf pmacct
 rm -rf nDPI
 
 echo 'running sql scripts'
-sudo mysql -u root -p < sql/init.sql
-sudo mysql -u root -p < sql/grant.sql
+cd ..
+sudo mysql -u root < sql/init.sql
+sudo mysql -u root < sql/grant.sql
 
 #python enviroment
 #pip install PySide6
 #pip install netifaces
+#pip install mysql.connector
